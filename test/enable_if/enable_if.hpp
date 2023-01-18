@@ -1,26 +1,26 @@
 #ifndef IS_INTEGRAL_HPP_
-# define IS_INTEGRAL_HPP_
+#define IS_INTEGRAL_HPP_
 
-// template <bool, typename T>
-// struct enable_if {};
+namespace ft {
 
-// template <typename T>
-// struct enable_if<true, T> {
-//   typedef T type;
-// };
+template <bool, typename T>
+struct enable_if {};
 
-// enable_if<typename is_integral<T>::value, T>
+template <typename T>
+struct enable_if<true, T> {
+  typedef T type;
+};
 
 template <bool is_integral, typename T>
 struct true_type {
   const static bool value = true;
-  typedef T type;
+  typedef T         type;
 };
 
 template <bool is_integral, typename T>
 struct false_type {
   const static bool value = false;
-  typedef T type;
+  typedef T         type;
 };
 
 template <typename T>
@@ -65,5 +65,6 @@ struct is_integral<long long> : public true_type<true, long long> {};
 template <>
 struct is_integral<unsigned long long>
     : public true_type<true, unsigned long long> {};
+}  // namespace ft
 
 #endif  // _IS_INTEGRAL_HPP_
