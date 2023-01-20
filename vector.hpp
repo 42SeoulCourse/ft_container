@@ -19,8 +19,9 @@ class vector {
   typedef const value_type&            const_reference;
   typedef Allocator::value_type*       pointer;
   typedef Allocator::const value_type* const_pointer;
-  // typedef value_type*                           iterator;  // T -> value_type
-  // typedef const value_type*                     const_iterator;
+  typedef typename std::iterator<std::random_access_iterator_tag, T> iterator;
+  typedef typename std::iterator<std::random_access_iterator_tag, const T>
+                                                const_iterator;
   typedef std::reverse_iterator<iterator>       reverse_iterator;
   typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
@@ -178,7 +179,6 @@ class vector {
   // restriction on the changes to capacity is in the specification of
   // vector::reserve, see above).
   void clear(){};
-
 };
 
 // relational operators for c++98
