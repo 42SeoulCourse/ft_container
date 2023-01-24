@@ -2,12 +2,14 @@
 #define VECTOR_HPP
 
 #include <iostream>
+#include <memory>
 
 #include "enable_if.hpp"
+#include "iterator.hpp"
 
 namespace ft {
 
-template <class T, class Allocator = std::allocator<T>>
+template <class T, class Allocator = std::allocator<T> >
 class vector {
   /********** Member types **********/
  public:
@@ -25,25 +27,37 @@ class vector {
   typedef std::reverse_iterator<iterator>       reverse_iterator;
   typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
-  /***************************** Member functions *****************************/
+  /***************************** Member variables *****************************/
+  // private:
+  //   size_type _size;
+  //   size_type _capacity;
+  //   pointer _data;
 
+  /***************************** Member functions *****************************/
  public:
   // Common Things =============================================================
   // constructors for c++98 __ constructs the vector
-  vector() : _size(0), _capacity(0), _data(NULL){};
-  explicit vector(const Allocator& alloc){};
+  vector() : _size(0), _capacity(0), _data(NULL) {
+    std::cout << "Create vector by Defalut vector constructor" << std::endl;
+  };
+  explicit vector(const Allocator& alloc){
+    std::cout << "Create vector by Copy Allocator vector constructor" << std::endl;
+  };
   explicit vector(size_type count, const value_type& value = value_type(),
                   const Allocator& alloc = Allocator()){};
   template <class InputIt>
-  vector(InputIt first, InputIt last, const Allocator& alloc = Allocator()){};
-  vector(const vector& other){};
-
-  // destructor for c++98 __ destructs the vector
-  ~vector(){};
-
-  // operator= for c++98 __ assigns new contents to the container
-  // returns *this
-  vector& operator=(const vector& other){};
+  vector(InputIt first, InputIt last, const Allocator& alloc = Allocator()){
+    std::cout << "Create vector by Iterator vector constructor" << std::endl;
+  };
+  vector(const vector& other){
+    std::cout << "Create vector by Copy vector constructor" << std::endl;
+  };
+  ~vector(){
+    std::cout << "Destructs vector" << std::endl;
+  };
+  vector& operator=(const vector& other){
+    std::cout << "Create vector by assignment operation" << std::endl;
+  };
 
   // get_allocator for c++98 __ returns the associated allocator
   allocator_type get_allocator() const {};
@@ -179,7 +193,8 @@ class vector {
   // restriction on the changes to capacity is in the specification of
   // vector::reserve, see above).
   void clear(){};
-};
+
+};  // class vector
 
 // relational operators for c++98
 template <class T, class Alloc>
