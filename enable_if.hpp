@@ -1,5 +1,5 @@
-#ifndef IS_INTEGRAL_HPP_
-#define IS_INTEGRAL_HPP_
+#ifndef ENABLE_IF_HPP_
+#define ENABLE_IF_HPP_
 
 namespace ft {
 
