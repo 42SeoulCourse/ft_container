@@ -1,6 +1,8 @@
 #ifndef IS_INTEGRAL_HPP_
 #define IS_INTEGRAL_HPP_
 
+#include <iostream>
+
 namespace ft {
 
 template <bool, typename T>
