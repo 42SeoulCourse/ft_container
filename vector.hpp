@@ -6,11 +6,13 @@
 
 #include "enable_if.hpp"
 #include "iterator.hpp"
+#include "random_access_iterator.hpp"
+#include "reverse_iterator.hpp"
 #include "utils.hpp"
 
 namespace ft {
 
-template <class T, class Allocator = std::allocator<T> >
+template <typename T, typename Allocator = std::allocator<T> >
 class vector {
   /********** Member types **********/
  public:
@@ -26,7 +28,7 @@ class vector {
   typedef ft::reverse_iterator<iterator>               reverse_iterator;
   typedef ft::reverse_iterator<const_iterator>         const_reverse_iterator;
   typedef
-      typename ft_iterator_traits<iterator>::difference_type difference_type;
+      typename ft::iterator_traits<iterator>::difference_type difference_type;
 
   /***************************** Member variables *****************************/
  private:
@@ -61,14 +63,11 @@ class vector {
     } catch (...) {
       for (pointer p = _start; p != _end; p++) _alloc.destroy(p);
       _alloc.deallocate(_start, count);
-      // exception safety
-      // 에러가 발생한 컨테이너가 파괴됨. 파괴된 사실을 본 스코프에서는 알지만,
-      // 바깥 스코프에도 알리기 위해 throw를 한 번 더 해준다.
       throw;
     }
   }
 
-  template <class InputIterator>
+  template <typename InputIterator>
   vector(
       InputIterator first, InputIterator last,
       const Allocator& alloc = Allocator(),
@@ -80,7 +79,7 @@ class vector {
     _end = _start;
     _capa_end = _start + count;
     try {
-      for (size_type i = 0; i < n; i++) _alloc.construct(_end++, *first++);
+      for (size_type i = 0; i < count; i++) _alloc.construct(_end++, *first++);
     } catch (...) {
       for (pointer p = _start; p != _end; p++) _alloc.destroy(p);
       _alloc.deallocate(_start, count);
@@ -144,31 +143,65 @@ class vector {
     if (position >= this->size()) {
       throw std::out_of_range("vector::at");
     }
-    return this->_start[position];
+    return ((*this)[position]);
   }
-  const_reference at(size_type position) const {
+  const const_reference at(size_type position) const {
     if (position >= this->size()) {
       throw std::out_of_range("vector::at");
     }
-    return this->_start[position];
+    return ((*this)[position]);
   }
 
   // operator[] for c++98 __ access specified element
   // Return reference to element at pos, no bounds checking is performed.
-  reference       operator[](size_type pos){};
-  const_reference operator[](size_type pos) const {}
+  reference             operator[](size_type pos) { return this->_start[pos]; }
+  const const_reference operator[](size_type pos) const {
+    return this->_start[pos];
+  }
 
   // front for c++98 __ access the first element
   // Return reference to the first element in the vector container
   // Calling front on an empty container is undefined.
-  reference       front(){}
-  const_reference front() const {}
+  reference front() {
+    try {
+      if (this->empty()) throw std::out_of_range("vector is empty");
+      return (*this->_start);
+    } catch (std::out_of_range& e) {
+      std::cout << e.what() << std::endl;
+      return (*this->_start);
+    }
+  }
+  const const_reference front() const {
+    try {
+      if (this->empty()) throw std::out_of_range("vector is empty");
+      return (*this->_start);
+    } catch (std::out_of_range& e) {
+      std::cout << e.what() << std::endl;
+      return (*this->_start);
+    }
+  }
 
   // back for c++98 __ access the last element
   // Return reference to the last element in the vector container
   // Calling back on an empty container is undefined.
-  reference       back(){}
-  const_reference back() const {}
+  reference back() {
+    try {
+      if (this->empty()) throw std::out_of_range("vector is empty");
+      return (*(this->_end - 1));
+    } catch (std::out_of_range& e) {
+      std::cout << e.what() << std::endl;
+      return (*(this->_end - 1));
+    }
+  }
+  const_reference back() const {
+    try {
+      if (this->empty()) throw std::out_of_range("vector is empty");
+      return (*(this->_end - 1));
+    } catch (std::out_of_range& e) {
+      std::cout << e.what() << std::endl;
+      return (*(this->_end - 1));
+    }
+  }
 
   // Iterators =================================================================
   // begin for c++98 __ returns an iterator to the beginning
@@ -189,16 +222,20 @@ class vector {
   // Returns a reverse iterator to the first element of the reversed vector.
   // It corresponds to the last element of the non-reversed vector. If the
   // vector is empty, the returned iterator is equal to rend().
-  reverse_iterator       rbegin(){}
-  const_reverse_iterator rbegin() const {}
+  reverse_iterator             rbegin() { return (reverse_iterator(_end)); }
+  const const_reverse_iterator rbegin() const {
+    return (reverse_iterator(_end));
+  }
 
   // rend for c++98 __ returns a reverse iterator to the end
   // Returns a reverse iterator to the element following the last element of the
   // reversed vector. It corresponds to the element preceding the first element
   // of the non-reversed vector. This element acts as a placeholder, attempting
   // to access it results in undefined behavior.
-  reverse_iterator       rend(){}
-  const_reverse_iterator rend() const {}
+  reverse_iterator             rend() { return (reverse_iterator(_start)); }
+  const const_reverse_iterator rend() const {
+    return (reverse_iterator(_start));
+  }
 
   // Capacity ==================================================================
   // empty for c++98 __ checks whether the container is empty
@@ -230,7 +267,23 @@ class vector {
   // After a call to reserve(),
   // insertions will not trigger reallocation unless the insertion would make
   // the size of the vector greater than the value of capacity().
-  void reserve(size_type new_cap){}
+  void reserve(size_type new_cap) {
+    try {
+      if (new_cap <= capacity()) {
+        throw std::invalid_argument(
+            "New capacity must be greater than current");
+      }
+      T* new_vector = new T[new_cap];
+      for (size_type i = 0; i < new_cap; i++) {
+        new_vector[i] = _start[i];
+      }
+      delete[] _start;
+      _start = new_vector;
+      capacity = new_cap;
+    } catch (const std::invalid_argument& e) {
+      std::cerr << e.what() << std::endl;
+    }
+  }
 
   // capacity for c++98 __ Returns the number of elements that the container has
   // currently allocated space for.
@@ -238,40 +291,38 @@ class vector {
 
   // Modifiers =================================================================
   // assign for c++98 __ assigns new contents to the container
-  template <class InputIterator>
-  void assign(InputIterator first, InputIterator last){}
-  void assign(size_type n, const value_type& val){}
+  template <typename InputIterator>
+  void assign(InputIterator first, InputIterator last) {}
+  void assign(size_type n, const value_type& val) {}
 
   // push_back for c++98 __ adds an element to the end
   // This effectively increases the container size by one, which causes an
   // automatic reallocation of the allocated storage space if -and only if- the
   // new vector size surpasses the current vector capacity.
-  void push_back(const value_type& val){}
+  void push_back(const value_type& val) {}
 
   // pop_back for c++98 __ removes the last element
   // This effectively reduces the container size by one.
-  void pop_back(){}
+  void pop_back() {}
 
   // insert for c++98 __ inserts elements
   // Inserts elements at the specified location in the container.
   // inserts value before pos
-  iterator insert(iterator position, const value_type& val){
-
-  }
-  void insert(iterator position, size_type n, const value_type& val)
-  template <class InputIterator>
-  void insert(iterator position, InputIterator first, InputIterator last)
+  iterator insert(iterator position, const value_type& val) {}
+  void     insert(iterator position, size_type n, const value_type& val);
+  template <typename InputIterator>
+  void insert(iterator position, InputIterator first, InputIterator last);
 
   // erase for c++98 __ removes elements
   // Removes from the vector either a single element(position) or a range of
   // elements([first, last]).
-  iterator erase(iterator position){}
-  iterator erase(iterator first, iterator last){}
+  iterator erase(iterator position) {}
+  iterator erase(iterator first, iterator last) {}
 
   // swap for c++98 __ exchanges the contents of the container
   // Exchanges the content of the container by the content of x, which is
   // another vector object of the same type. Sizes may differ.
-  void swap(vector& x){}
+  void swap(vector& x) {}
 
   // clear for c++98 __ clears the contents
   // Erases all elements from the vector(container is now empty). After this
@@ -287,26 +338,26 @@ class vector {
 };  // class vector
 
 // relational operators for c++98
-template <class T, class Alloc>
+template <typename T, typename Alloc>
 bool operator==(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
 
-template <class T, class Alloc>
+template <typename T, typename Alloc>
 bool operator!=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
 
-template <class T, class Alloc>
+template <typename T, typename Alloc>
 bool operator<(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
 
-template <class T, class Alloc>
+template <typename T, typename Alloc>
 bool operator<=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
 
-template <class T, class Alloc>
+template <typename T, typename Alloc>
 bool operator>(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
 
-template <class T, class Alloc>
+template <typename T, typename Alloc>
 bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
 
 // swap for c++98 __ exchanges the contents of the container
-template <class T, class Alloc>
+template <typename T, typename Alloc>
 void swap(vector<T, Alloc>& x, vector<T, Alloc>& y);
 
 }  // namespace ft
