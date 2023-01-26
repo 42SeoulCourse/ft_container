@@ -30,7 +30,7 @@ class reverse_iterator {
   virtual ~reverse_iterator() {}
 
   template <typename U>
-  reverse_iterator& operator=(const reverse_iterater& other) {
+  reverse_iterator& operator=(const reverse_iterator& other) {
     _iter = other.base();
     return (*this);
   }
@@ -179,7 +179,7 @@ template <typename Iterator>
 reverse_iterator<Iterator> operator+(
     typename reverse_iterator<Iterator>::difference_type n,
     const reverse_iterator<Iterator>&                    reverse_iter) {
-  return (rev_it + n);
+  return (reverse_iter + n);
 }
 
 template <typename Iterator>
