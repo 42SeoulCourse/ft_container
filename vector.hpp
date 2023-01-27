@@ -316,11 +316,27 @@ class vector {
   // This effectively increases the container size by one, which causes an
   // automatic reallocation of the allocated storage space if -and only if- the
   // new vector size surpasses the current vector capacity.
-  void push_back(const value_type& val) {}
+  void push_back(const value_type& val) {
+    if (_end == _capa_end) {
+      size_type size = this->size();
+      if (size == 0) {
+        this->reserve(1);
+      } else {
+        this->reserve(2 * size);  // capacity() 만큼 늘려줘야하기 떄문이다. _end
+                                  // 와 _capa_end 가 같기 때문에 사이즈 2배
+      }
+    }
+    _alloc.construct(_end, val);
+    _end++;
+  }
 
   // pop_back for c++98 __ removes the last element
   // This effectively reduces the container size by one.
-  void pop_back() {}
+  void pop_back() {
+    if (this->size() != 0) {
+      _alloc.destroy(--_end);
+    }
+  }
 
   // insert for c++98 __ inserts elements
   // Inserts elements at the specified location in the container.
@@ -337,19 +353,15 @@ class vector {
     return (this->erase(position, position + 1));
   }
   iterator erase(iterator first, iterator last) {
-    try {
-      if (first > last)
-        throw std::invalid_argument(
-            "First iterator must be less than or equal to last iterator");
-      if (first < this->begin() || last > this->end())
-        throw std::out_of_range("Iterator out of range");
-      size_type new_size = size() - (last - first);
+    pointer prev_first = &*first;
 
-    } catch (std::invalid_argument& e) {
-      std::cout << e.what() << std::endl;
-    } catch (std::out_of_range& e) {
-      std::cout << e.what() << std::endl;
+    for (; first != last; ++first) _alloc.destroy(&*first);
+    for (int i = 0; &*last + i != _end; ++i) {
+      _alloc.construct(prev_first + i, *(&*last + i));
+      _alloc.destroy(&*last + i);
     }
+    _end -= (&*first - prev_first); // 단순히 지운만큼 끝에서 지운것
+    return prev_first;
   }
 
   // swap for c++98 __ exchanges the contents of the container
