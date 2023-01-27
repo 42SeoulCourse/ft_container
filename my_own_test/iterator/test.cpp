@@ -11,12 +11,30 @@ int main() {
   for (iter_type itr = myvector.begin(); itr != myvector.end(); itr++) {
     std::cout << *itr;
   }
+
   std::cout << std::endl;
+
   iter_type first = myvector.begin();
   iter_type last = myvector.end();
   // for (; &*first != &*last; first++) 둘 다 됨
-  for (; first != last; first++) {
-    std::cout << *first;
+  for (int i; (&*first) + i != (&*last); i++) {
+    std::cout << (&*first) + i << std::endl;
+  }
+
+  std::cout << std::endl;
+
+  iter_type first0 = myvector.begin();
+  iter_type last0 = myvector.end();
+  for (; &*first != &*last; first++) {
+    std::cout << (&*first) << std::endl;
+  }
+
+  std::cout << std::endl;
+
+  iter_type first1 = myvector.begin();
+  iter_type last1 = myvector.end();
+  for (; (first1) != (last1); first1++) {
+    std::cout << &*first1 << std::endl;
   }
   std::cout << std::endl;
   return 0;
