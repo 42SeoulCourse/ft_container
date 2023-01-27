@@ -41,11 +41,6 @@ class vector {
  public:
   // Common Things =============================================================
   // constructors for c++98 __ constructs the vector
-  explicit vector()
-      : _start(NULL), _end(NULL), _capa_end(NULL), _alloc(allocator_type()) {
-    std::cout << "Create vector by Defalut vector constructor" << std::endl;
-  }
-
   explicit vector(const allocator_type& alloc = allocator_type())
       : _start(NULL), _end(NULL), _capa_end(NULL), _alloc(alloc) {
     std::cout << "Create vector by allocator constructor" << std::endl;
@@ -139,6 +134,7 @@ class vector {
   // Element access ============================================================
   // at for c++98 __ access specified element with bounds checking.
   // Return reference to element at pos, exception if out of range is thrown
+  // PASS
   reference at(size_type position) {
     if (position >= this->size()) {
       throw std::out_of_range("vector::at");
@@ -257,30 +253,32 @@ class vector {
   // reserve for c++98 __ requests that the vector capacity be at least enough
   // Increase the capacity of the vector (the total number of elements that the
   // vector can hold without requiring reallocation) to a value that's greater
-  // or equal to new_cap. If new_cap is greater than the current capacity(), new
-  // storage is allocated, otherwise the function does nothing.
-  // reserve() does not change the size of the vector.
-  // If new_cap is greater than capacity(),
-  // all iterators, including the past - the - end iterator,
-  // and all references to the elements are invalidated.Otherwise,
-  // no iterators or references are invalidated.
-  // After a call to reserve(),
-  // insertions will not trigger reallocation unless the insertion would make
-  // the size of the vector greater than the value of capacity().
+  // or equal to new_cap. new_cap 이 capacity 보다 더 커야 capacity 를 증가할 수
+  // 있다. test 폴더에서 주소를 출력해보니, reserve 하면 다른 주소가 출력된다.
   void reserve(size_type new_cap) {
     try {
-      if (new_cap <= capacity()) {
-        throw std::invalid_argument(
-            "New capacity must be greater than current");
+      if (new_cap > this->max_size()) {
+        throw std::length_error("new capacity must be less than max_size");
       }
-      T* new_vector = new T[new_cap];
-      for (size_type i = 0; i < new_cap; i++) {
-        new_vector[i] = _start[i];
+      if (new_cap < this->capacity()) {
+        return;
       }
-      delete[] _start;
-      _start = new_vector;
-      capacity = new_cap;
-    } catch (const std::invalid_argument& e) {
+      pointer   prev = _start;
+      pointer   prev_end = _end;
+      size_type prev_capa = this->capacity();
+      size_type prev_size = this->size();
+
+      _start = _alloc.allocate(new_cap);
+      _end = _start;
+      _capa_end = _start + new_cap;
+      while (prev != prev_end) {
+        _alloc.construct(_end, *prev);
+        _alloc.destroy(prev);
+        ++_end;
+        ++prev;
+      }
+      _alloc.deallocate(prev - prev_size, prev_capa);
+    } catch (const std::length_error& e) {
       std::cerr << e.what() << std::endl;
     }
   }
@@ -292,8 +290,27 @@ class vector {
   // Modifiers =================================================================
   // assign for c++98 __ assigns new contents to the container
   template <typename InputIterator>
-  void assign(InputIterator first, InputIterator last) {}
-  void assign(size_type n, const value_type& val) {}
+  void assign(InputIterator first, InputIterator last,
+              typename ft::enable_if<!ft::is_integral<InputIterator>::value,
+                                     InputIterator>::type* = 0) {
+    size_type new_size = ft::distance(first, last);
+    if (new_size <= this->capacity()) {
+      for (; first != last; ++first, ++_end) _alloc.construct(_end, *first);
+    } else {
+      this->reserve(new_size);
+      for (; first != last; ++first, ++_end) _alloc.construct(_end, *first);
+    }
+    this->clear();
+  }
+  void assign(size_type count, const value_type& val) {
+    if (this->capacity() < count) {
+      this->reserve(count);
+      while (count--) _alloc.construct(_end++, val);
+    } else {
+      while (count--) _alloc.construct(_end++, val);
+    }
+    this->clear();
+  }
 
   // push_back for c++98 __ adds an element to the end
   // This effectively increases the container size by one, which causes an
@@ -316,8 +333,24 @@ class vector {
   // erase for c++98 __ removes elements
   // Removes from the vector either a single element(position) or a range of
   // elements([first, last]).
-  iterator erase(iterator position) {}
-  iterator erase(iterator first, iterator last) {}
+  iterator erase(iterator position) {
+    return (this->erase(position, position + 1));
+  }
+  iterator erase(iterator first, iterator last) {
+    try {
+      if (first > last)
+        throw std::invalid_argument(
+            "First iterator must be less than or equal to last iterator");
+      if (first < this->begin() || last > this->end())
+        throw std::out_of_range("Iterator out of range");
+      size_type new_size = size() - (last - first);
+
+    } catch (std::invalid_argument& e) {
+      std::cout << e.what() << std::endl;
+    } catch (std::out_of_range& e) {
+      std::cout << e.what() << std::endl;
+    }
+  }
 
   // swap for c++98 __ exchanges the contents of the container
   // Exchanges the content of the container by the content of x, which is
