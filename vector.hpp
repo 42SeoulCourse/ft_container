@@ -360,14 +360,35 @@ class vector {
       _alloc.construct(prev_first + i, *(&*last + i));
       _alloc.destroy(&*last + i);
     }
-    _end -= (&*first - prev_first); // 단순히 지운만큼 끝에서 지운것
+    _end -= (&*first -
+             prev_first);  // 단순히 지운만큼 _end를 끝에서 앞으로 당긴 것.
     return prev_first;
   }
 
   // swap for c++98 __ exchanges the contents of the container
   // Exchanges the content of the container by the content of x, which is
   // another vector object of the same type. Sizes may differ.
-  void swap(vector& x) {}
+  void swap(vector& x) {
+    pointer        temp_start;
+    pointer        temp_end;
+    pointer        temp_capa_end;
+    allocator_type temp_alloc;
+
+    temp_start = _start;
+    temp_end = _end;
+    temp_capa_end = _capa_end;
+    temp_alloc = _alloc;
+
+    _start = x._start;
+    _end = x._end;
+    _capa_end = x._capa_end;
+    _alloc = x._alloc;
+
+    x._start = temp_start;
+    x._end = temp_end;
+    x._capa_end = temp_capa_end;
+    x._alloc = temp_alloc;
+  }
 
   // clear for c++98 __ clears the contents
   // Erases all elements from the vector(container is now empty). After this
