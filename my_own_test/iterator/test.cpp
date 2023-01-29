@@ -37,5 +37,13 @@ int main() {
     std::cout << &*first1 << std::endl;
   }
   std::cout << std::endl;
+
+  iter_type first2 = myvector.begin();
+  iter_type last2 = myvector.end();
+  iter_type practice = myvector.begin();
+  practice += 2;
+
+  size_t result = &*practice - &*first2;
+
   return 0;
 }
