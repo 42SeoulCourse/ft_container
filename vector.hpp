@@ -526,26 +526,50 @@ class vector {
 
 // relational operators for c++98
 template <typename T, typename Alloc>
-bool operator==(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
+bool operator==(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+  if (lhs.size() != rhs.size()) return false;
+  typename vector<T, Alloc>::const_iterator lhs_it = lhs.begin();
+  typename vector<T, Alloc>::const_iterator rhs_it = rhs.begin();
+
+  while (lhs_it != lhs.end()) {
+    if (*lhs_it != *rhs_it) return false;
+    ++lhs_it;
+    ++rhs_it;
+  }
+  return true;
+}
 
 template <typename T, typename Alloc>
-bool operator!=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
+bool operator!=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+  return !(lhs == rhs);
+}
 
 template <typename T, typename Alloc>
-bool operator<(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
+bool operator<(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+  return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
+                                     rhs.end());
+}
 
 template <typename T, typename Alloc>
-bool operator<=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
+bool operator<=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+  return !(rhs < lhs);
+}
 
 template <typename T, typename Alloc>
-bool operator>(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
+bool operator>(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+  return rhs < lhs;
+}
 
 template <typename T, typename Alloc>
-bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs);
+bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+  return !(lhs < rhs);
+}
 
 // swap for c++98 __ exchanges the contents of the container
 template <typename T, typename Alloc>
-void swap(vector<T, Alloc>& x, vector<T, Alloc>& y);
+void swap(vector<T, Alloc>& lhs, vector<T, Alloc>& rhs) {
+  lhs.swap(rhs);
+}
 
 }  // namespace ft
 
