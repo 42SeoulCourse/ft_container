@@ -43,13 +43,11 @@ class vector {
   // constructors for c++98 __ constructs the vector
   explicit vector(const allocator_type& alloc = allocator_type())
       : _start(NULL), _end(NULL), _capa_end(NULL), _alloc(alloc) {
-    std::cout << "Create vector by allocator constructor" << std::endl;
   }
 
   explicit vector(size_type count, const value_type& value = value_type(),
                   const Allocator& alloc = allocator_type())
       : _alloc(alloc) {
-    std::cout << "Create vector by Fill vector constructor" << std::endl;
     _start = _alloc.allocate(count);
     _end = _start;
     _capa_end = _start + count;
@@ -68,7 +66,6 @@ class vector {
       const Allocator& alloc = Allocator(),
       typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0)
       : _alloc(alloc) {
-    std::cout << "Create vector by Iterator vector constructor" << std::endl;
     size_type count = ft::distance(first, last);
     _start = _alloc.allocate(count);
     _end = _start;
@@ -85,7 +82,6 @@ class vector {
   // 매개변수를 const 로 받기 때문에 내부에서 직접 start를 바꿀 수 없기 때문에
   // p에 옮겨서 복사했다.
   vector(const vector& other) : _alloc(other._alloc) {
-    std::cout << "Create vector by Copy vector constructor" << std::endl;
     size_type count = other.size();
     _start = _alloc.allocate(count);
     _end = _start;
@@ -101,7 +97,6 @@ class vector {
   }
 
   vector& operator=(const vector& other) {
-    std::cout << "Create vector by assignment operation" << std::endl;
     if (this == &other) return (*this);
     this->clear();
     if (this->capacity() < other.size()) {
@@ -123,7 +118,6 @@ class vector {
   }
 
   ~vector() {
-    std::cout << "Destructs vector" << std::endl;
     this->clear();
     _alloc.deallocate(_start, this->capacity());
   }
@@ -307,6 +301,7 @@ class vector {
   void assign(InputIterator first, InputIterator last,
               typename ft::enable_if<!ft::is_integral<InputIterator>::value,
                                      InputIterator>::type* = 0) {
+    this->clear();
     size_type new_size = ft::distance(first, last);
     if (new_size <= this->capacity()) {
       for (; first != last; ++first, ++_end) _alloc.construct(_end, *first);
@@ -314,16 +309,15 @@ class vector {
       this->reserve(new_size);
       for (; first != last; ++first, ++_end) _alloc.construct(_end, *first);
     }
-    this->clear();
   }
   void assign(size_type count, const value_type& val) {
+    this->clear();
     if (this->capacity() < count) {
       this->reserve(count);
       while (count--) _alloc.construct(_end++, val);
     } else {
       while (count--) _alloc.construct(_end++, val);
     }
-    this->clear();
   }
 
   // push_back for c++98 __ adds an element to the end
