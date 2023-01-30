@@ -26,7 +26,7 @@ class random_access_iterator
 
  public:
   // Constructors =============================================================
-  random_access_iterator() : _ptr(NULL) {}
+  random_access_iterator() : _ptr(0) {}
   random_access_iterator(const random_access_iterator& other)
       : _ptr(other._ptr) {}
   random_access_iterator(pointer ptr) : _ptr(ptr) {}
@@ -96,6 +96,7 @@ class random_access_iterator
   reference        operator*() { return *_ptr; }
   const reference  operator*() const { return *_ptr; }
   pointer          operator->() const { return _ptr; }
+  // ++
   operator         random_access_iterator<const T>() const {
     return (random_access_iterator<const T>(this->_ptr));
   }
@@ -106,21 +107,22 @@ class random_access_iterator
 template<typename T>
 random_access_iterator<T> operator+(
     typename random_access_iterator<T>::difference_type n,
-    const random_access_iterator<T>&                    it) {
+    const random_access_iterator<T>&                    iterator) {
+  random_access_iterator<T> it = iterator;
   return (it + n);
 }
 
 template<typename Iterator>
 typename ft::random_access_iterator<Iterator>::difference_type operator-(
-    const ft::random_access_iterator<Iterator>& lhs,
-    const ft::random_access_iterator<Iterator>& rhs) {
+    const random_access_iterator<Iterator>& lhs,
+    const random_access_iterator<Iterator>& rhs) {
   return (lhs.base() - rhs.base());
 }
 
 template<typename Iterator1, typename Iterator2>
 typename ft::random_access_iterator<Iterator1>::difference_type operator-(
-    const ft::random_access_iterator<Iterator1>& lhs,
-    const ft::random_access_iterator<Iterator2>& rhs) {
+    const random_access_iterator<Iterator1>& lhs,
+    const random_access_iterator<Iterator2>& rhs) {
   return (lhs.base() - rhs.base());
 }
 
