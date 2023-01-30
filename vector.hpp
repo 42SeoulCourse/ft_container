@@ -32,9 +32,9 @@ class vector {
 
   /***************************** Member variables *****************************/
  private:
-  pointer        _start;
-  pointer        _end;
-  pointer        _capa_end;
+  pointer _start;     // 첫번째 원소를 가리킨다.
+  pointer _end;       // 마지막 원소의 다음 원소를 가리킨다.
+  pointer _capa_end;  // 마지막 원소의 다음 원소를 가리킨다.
   allocator_type _alloc;
 
   /***************************** Member functions *****************************/
@@ -244,6 +244,20 @@ class vector {
   // i.e. std::distance(begin(), end()). 우리는 distance를 사용 못한다.
   size_type size() const { return (this->_end - this->_start); }
 
+  // resize for c++98
+  void resize(size_type n, value_type val = value_type()) {
+    if (n > this->max_size())
+      throw std::length_error("new size must be less than max_size");
+    if (n < this->size()) {
+      while (n < this->size()) {
+        this->pop_back();
+      }
+    } else if (n > this->size()) {
+      if (this->capacity() < n) this->reserve(n);
+      while (n > this->size()) this->push_back(val);
+    }
+  }
+
   // max_size for c++98 __ returns the maximum possible number of elements
   // Returns the maximum number of elements that the vector can hold due to
   // system or library implementation limitations,
@@ -341,10 +355,117 @@ class vector {
   // insert for c++98 __ inserts elements
   // Inserts elements at the specified location in the container.
   // inserts value before pos
-  iterator insert(iterator position, const value_type& val) {}
-  void     insert(iterator position, size_type n, const value_type& val);
+
+  // 반환값은 인서트한 곳이다. 얼마나 reserve 해야할지 판단. end 에서 부터 값을
+  // 하나씩 뒤로 미뤄서 넣고, 파괴한다. 그리고 insert, end 값 ++로 마무리
+  iterator insert(iterator position, const value_type& val) {
+    size_type pos = &*position - _start;  // 포인터이기 때문에, &* 를 사용해서
+                                          // size_type으로 바꿔서 연산한다.
+    size_type rpos = _end - &*position;
+
+    if (this->size() == 0)
+      this->reserve(1);
+    else if (_end == _capa_end)
+      this->reserve(2 * this->size());
+    for (size_type i = 0; i < rpos; i++) {
+      _alloc.construct(_end - i, *(_end - i - 1));
+      _alloc.destroy(_end - i - 1);
+    }
+    _alloc.construct(_start + pos, val);
+    _end++;
+    return (iterator(_start + pos));
+  }
+  void insert(iterator position, size_type n, const value_type& val) {
+    if (position > this->end() || position < this->begin()) return;
+
+    size_type next_size = this->size() + n;
+    size_type pos = &*position - _start;
+    size_type prev_capa = this->capacity();
+    size_type alloced_size = 0;
+    pointer   new_start = 0;
+    pointer   prev_capa_end = _capa_end;
+
+    if (this->max_size() < next_size)
+      throw std::length_error(
+          "vector::insert: vector size exceeds maximum size");
+    if (this->capacity() < next_size) {
+      new_start = _alloc.allocate(next_size);
+      _capa_end = new_start + next_size;
+      alloced_size = next_size;
+    } else {
+      new_start = _alloc.allocate(this->capacity());
+      _capa_end = new_start + this->capacity();
+      alloced_size = this->capacity();
+    }
+    try {
+      for (size_type i = 0; i < pos; ++i)
+        _alloc.construct(new_start + i, *(_start + i));
+      for (size_type i = 0; i < n; ++i)
+        _alloc.construct(new_start + pos + i, val);
+      for (size_type i = 0; i < this->size() - pos; ++i)
+        _alloc.construct(new_start + pos + n + i, *(_start + pos + i));
+    } catch (...) {
+      for (size_type i = 0; i < pos; ++i) _alloc.destroy(new_start + i);
+      for (size_type i = 0; i < n; ++i) _alloc.destroy(new_start + pos + i);
+      for (size_type i = 0; i < this->size() - pos; ++i)
+        _alloc.destroy(new_start + pos + n + i);
+      _alloc.deallocate(new_start, alloced_size);
+      _capa_end = prev_capa_end;
+      throw;
+    }
+
+    for (size_type i = 0; i < this->size(); ++i) _alloc.destroy(_start + i);
+    _alloc.deallocate(_start, prev_capa);
+    _end = new_start + n + this->size();
+    _start = new_start;
+  }
   template <typename InputIterator>
-  void insert(iterator position, InputIterator first, InputIterator last);
+  void insert(iterator position, InputIterator first, InputIterator last,
+              typename ft::enable_if<!ft::is_integral<InputIterator>::value,
+                                     InputIterator>::type* = 0) {
+    if (position > this->end() || position < this->begin()) return;
+
+    size_type num = ft::distance(first, last);
+    size_type next_size = this->size() + num;
+    size_type prev_capa = this->capacity();
+    size_type pos = &*position - _start;
+    size_type alloced_size = 0;
+    pointer   new_start = 0;
+    pointer   prev_capa_ptr = _capa_end;
+
+    if (this->max_size() < next_size)
+      throw std::length_error(
+          "vector::insert: vector size exceeds maximum size");
+    if (this->capacity() < next_size) {
+      new_start = _alloc.allocate(next_size);
+      _capa_end = new_start + next_size;
+      alloced_size = next_size;
+    } else {
+      new_start = _alloc.allocate(this->capacity());
+      _capa_end = new_start + this->capacity();
+      alloced_size = this->capacity();
+    }
+    try {
+      for (size_type i = 0; i < pos; ++i)
+        _alloc.construct(new_start + i, *(_start + i));
+      for (size_type i = 0; i < num; ++i)
+        _alloc.construct(new_start + pos + i, *(&*first++));
+      for (size_type i = 0; i < this->size() - pos; ++i)
+        _alloc.construct(new_start + pos + num + i, *(_start + pos + i));
+    } catch (...) {
+      for (size_type i = 0; i < pos; ++i) _alloc.destroy(new_start + i);
+      for (size_type i = 0; i < num; ++i) _alloc.destroy(new_start + pos + i);
+      for (size_type i = 0; i < this->size() - pos; ++i)
+        _alloc.destroy(new_start + pos + num + i);
+      _alloc.deallocate(new_start, alloced_size);
+      _capa_end = prev_capa_ptr;
+      throw;
+    }
+    for (size_type i = 0; i < this->size(); ++i) _alloc.destroy(_start + i);
+    _alloc.deallocate(_start, prev_capa);
+    _end = new_start + num + this->size();
+    _start = new_start;
+  }
 
   // erase for c++98 __ removes elements
   // Removes from the vector either a single element(position) or a range of
