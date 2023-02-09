@@ -2,6 +2,7 @@
 #define RED_BLACK_TREE_HPP
 
 #include <iterator>
+
 #include "iterator.hpp"
 
 namespace ft {
@@ -271,6 +272,91 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     }
     return tmp;
   }
+
+  node_type clone_node(node_type x) {
+    node_type tmp = create_node(x->value);
+    tmp->color = x->color;
+    tmp->left = 0;
+    tmp->right = 0;
+    return tmp;
+  }
+
+  void destroy_node(node_type p) {
+    value_allocator.destroy(&p->value);
+    put_node(p);
+  }
+
+  // 루트와 min, max
+  node_type &root() const { return (link_type &)(header->parent); }
+  node_type &leftmost() const { return (link_type &)(header->left;) }
+  node_type &rightmost() const { return (link_type &)(header->right;) }
+
+  static node_type minimum(node_type x) { return RB_tree_node<V>::minimum(x); }
+  static node_type maximum(node_type x) { return RB_tree_node<V>::maximum(x); }
+
+  // 노드의 왼쪽, 오른쪽, 루트 체크
+  static bool is_left_child(link_type x) { return x == x->parent->left; }
+  static bool is_right_child(link_type x) { return x == x->parent->right; }
+  static bool is_root(node_type x) { return x->parent == 0; }
+
+  // 노드의 삼촌
+  static node_type &uncle(node_type x) {
+    return (is_left_child(x->parent) ? x->parent->parent->right
+                                     : x->parent->parent->left);
+  }
+  // 노드의 형제
+  static node_type &sibling(node_type x) {
+    return (is_left_child(x) ? x->parent->right : x->parent->left);
+  }
+
+  static reference   value(node_type x) { return x->value; }
+  static const Key  &key(node_type x) { return KeyOfValue()(value(x)); }
+  static color_type &color(node_type x) { return (color_type &)(x->color); }
+
+ public:
+  RB_tree() : base(allocator_type()), node_count(0), key_compare(Compare()) {
+    empty_initialize();
+  }
+
+  RB_tree(const Compare &comp, const allocator_type &alloc = allocator_type())
+      : base(alloc), node_count(0), key_compare(comp) {
+    empty_initialize();
+  }
+
+  RB_tree(const Rb_tree<Key, Value, KeyOfValue, Compare, Allocator> &x)
+      : base(x.get_allocator()), node_count(0), key_compare(x.key_compare) {
+    if (x.root() == 0) {
+      empty_initialize();
+    } else {
+      root() = copy(x.root(), header);
+      leftmost() = minimum(root());
+      rightmost() = maximum(root());
+      node_count = x.node_count;
+    }
+  }
+
+  ~RB_tree(){clear()};
+
+  RB_tree &operator=(const RB_tree &x) {
+    if (this != &x) {
+      clear();
+      node_count = 0;
+      key_compare = x.key_compare;
+      if (x.root() == 0) {
+        root() = 0;
+        leftmost() = header;
+        rightmost() = header;
+      } else {
+        root() = copy(x.root(), header);
+        leftmost() = minimum(root());
+        rightmost() = maximum(root());
+      }
+      node_count = x.node_count;
+    }
+    return *this;
+  }
+
+  
 };
 
 };  // namespace ft
