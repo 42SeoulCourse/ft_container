@@ -1,6 +1,7 @@
 #ifndef RED_BLACK_TREE_HPP
 #define RED_BLACK_TREE_HPP
 
+#include <iterator>
 #include "iterator.hpp"
 
 namespace ft {
@@ -117,8 +118,8 @@ class RB_tree_iterator {
 template <typename V>
 class RB_tree_const_iterator {
   typedef V                              value_type;
-  typedef const V                             &reference;
-  typedef const V                             *pointer;
+  typedef const V                       &reference;
+  typedef const V                       *pointer;
   typedef ptrdiff_t                      difference_type;
   typedef ft::bidirectional_iterator_tag iterator_category;
   typedef RB_tree_node<V>               *node_type;
@@ -194,6 +195,81 @@ class RB_tree_const_iterator {
       }
       node = y;
     }
+  }
+};
+
+template <typename T, typename Allocator>
+class RB_tree_base {
+ public:
+  typedef Allocator allocator_type;
+  typedef typename Allocator::template rebind<RB_tree_base<T> >::other
+                 node_allocator_type;
+  allocator_type get_allocator() const { return node_allocator; }
+
+ protected:
+  RB_tree_node<T>    *header;
+  allocator_type      value_allocator;
+  node_allocator_type node_allocator;
+
+  RB_tree_node<T> *get_node() { return node_allocator.allocate(1); }
+  void put_node(RB_tree_node<T> *p) { node_allocator.deallocate(p, 1); }
+
+ public:
+  RB_tree_base(const allocator_type &alloc = allocator_type())
+      : value_allocator(alloc) {
+    header = get_node();
+  }
+  ~RB_tree_base() { put_node(header); }
+};
+
+template <typename Key, typename Value, typename KeyOfValue, typename Compare,
+          typename Alloc = std::allocator<Value> >
+class RB_tree : protected RB_tree_base<V, Allocator> {
+  typedef RB_tree_base<V, Allocator> base;
+  typedef RB_tree_node<V>           *node_type;
+  typedef RB_tree_node_color         color_type;
+  // using Base::header;
+  // using Base::get_node;
+  // using Base::put_node;
+  // using Base::value_allocator;
+
+ public:
+  // 트리 노드 요소
+  typedef Key               key_type;
+  typedef Value             value_type;
+  typedef value_type       *pointer;
+  typedef const value_type *const_pointer;
+  typedef value_type       &reference;
+  typedef const value_type &const_reference;
+  typedef size_t            size_type;
+  typedef ptrdiff_t         difference_type;
+
+  // 트리 이터레이터
+  typedef RB_tree_iterator<value_type>       iterator;
+  typedef RB_tree_const_iterator<value_type> const_iterator;
+
+  typedef ft::reverse_iterator<iterator>       reverse_iterator;
+  typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
+
+  // 트리 할당기
+  typedef typename base::allocator_type allocator_type;
+  allocator_type get_allocator() const { return base::get_allocator(); }
+
+ private:
+  size_type node_count;   // 노드 개수
+  Compare   key_compare;  // 키 비교 함수
+
+  node_type create_node(const value_type &x) {
+    node_type tmp = get_node();
+    try {
+      value_allocator.construct(&tmp->value, x);
+      tmp->left = 0;
+      tmp->right = 0;
+    } catch (...) {
+      put_node(tmp);
+      throw;
+    }
+    return tmp;
   }
 };
 
