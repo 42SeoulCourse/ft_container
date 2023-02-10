@@ -4,6 +4,8 @@
 #include <iterator>
 
 #include "iterator.hpp"
+#include "pair.hpp"
+#include "utils.hpp"
 
 namespace ft {
 // 컬러 설정
@@ -356,7 +358,166 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     return *this;
   }
 
-  
+ public:
+  // 접근자
+  Compare                key_comp() const { return key_compare; }
+  iterator               begin() { return leftmost(); }
+  const_iterator         begin() const { return leftmost(); }
+  iterator               end() { return header; }
+  const_iterator         end() const { return header; }
+  reverse_iterator       rbegin() { return reverse_iterator(end()); }
+  const_reverse_iterator rbegin() const {
+    return const_reverse_iterator(end());
+  }
+  reverse_iterator       rend() { return reverse_iterator(begin()); }
+  const_reverse_iterator rend() const {
+    return const_reverse_iterator(begin());
+  }
+  bool      empty() const { return node_count == 0; }
+  size_type size() const { return node_count; }
+  size_type max_size() const { return size_type(-1); }
+
+  void swap(RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &t) {
+    std::swap(header, t.header);
+    std::swap(node_count, t.node_count);
+    std::swap(key_compare, t.key_compare);
+  }
+
+  pair<iterator, bool> insert_unique(const value_type &v) {
+    node_type y = header;
+    node_type x = root();
+    bool      comp = true;
+    // 위치 찾기
+    while (x != 0) {
+      y = x;
+      comp = key_compare(KeyOfValue()(v), key(x));
+      x = comp ? x->left : x->right;  // nil 을 만나면 멈춤
+    }
+    // 반복자 삽입
+    iterator j = iterator(y);
+    if (comp) {
+      if (j == begin())
+        return pair<iterator, bool>(insert(y, v), true);
+      else
+        --j;
+    }
+    // 값을 비교해서 같으면 false
+    if (key_compare(key(j.node), KeyOfValue()(v)))
+      return pair<iterator, bool>(insert(y, v), true);
+    return pair<iterator, bool>(j, false);
+  }
+
+  iterator insert_unique(iterator posirion, const value_type &v) {
+    if (position.node == header->left) {  // 노드의 위치가 begin();
+      if (size() > 0 && key_compare(KeyOfValue()(v), key(position.node)))
+        return insert(position.node, v);  // 들어올 노드가 가장 작을 때
+      else
+        return insert_unique(v)
+            .first;  // 들어올 노드가 가장 작은 노드의 형제일 때
+    } else if (position.node == header) {  // 노드의 위치가 헤더일 때
+      if (key_compare(key(rightmost()), KeyOfValue()(v)))
+        return insert(0, v);  // 들어올 노드가 가장 큰 노드의 형제일 때
+      else
+        return insert_unique(v).first;  // 들어올 노드가 가장 큰 노드일 때
+    } else {
+      iterator before = position;
+      --before;
+      if (key_compare(key(before.node), KeyOfValue()(v)) &&
+          key_compare(KeyOfValue()(v), key(position.node)))
+        if (position.node->left == 0)
+          return insert(position.node,
+                        v);  // 들어올 노드가 position의 형제일 때
+        else
+          return insert_unique(v).first;  // 들어올 노드가 position의 자식일 때
+      else
+        return insert_unique(v)
+            .first;  // 들어올 노드가 position의 형제가 아닐 때
+    }
+  }
+
+  template <typename InputIterator>
+  void insert_unique(InputIterator first, InputIterator last) {
+    for (; first != last; ++first) insert_unique(*first);
+  };
+
+  // delete
+  // 노드 지우기
+  void erase(iterator position) {
+    node_type n = RB_tree_rebalance_for_erase(position.node);
+    destroy_node(n);
+    --node_count;
+  }
+
+  // x 까지 지우기?
+  size_type erase(const key_tyhpe &x) {
+    ft::pair<iterator, iterator> p = equal_range(x);
+    size_type                    n = ft::distance(p.first, p.second);
+    erase(p.first, p.second);
+    return n;
+  }
+
+  // 반복자로 범위 지우기
+  void erase(iterator first, iterator last) {
+    if (first == begin() && last == end())
+      clear();
+    else
+      while (first != last) erase(first++);
+  }
+
+  // 키 값으로 범위 지우기
+  void erase(const key_type *first, const key_type *last) {
+    while (first != last) erase(*first++);
+  }
+
+  void clear() {
+    if (node_count != 0) {
+      erase(root());
+      leftmost() = header;
+      root() = 0;
+      rightmost() = header;
+      node_count = 0;
+    }
+  }
+
+ public:
+  iterator find(const key_type &k) {
+    node_type y = header;
+    node_type x = root();
+    while (x != 0) {
+      // k 가 x 보다 작거나 같으면 왼쪽으로
+      if (key_compare(key(x), k) == false) {
+        // 같으면 y = x 를 통해 y 에 같은 노드를 대입, 그후 j로 반환
+        y = x;
+        x = x->left;
+      } else
+        x = x->right;
+    }
+    iterator j = iterator(y);
+    // j 가 end() 이거나 k 가 j 보다 작으면 end() 반환
+    // 아니면 j 반환
+    return (j == end() || key_compare(k, key(j.node))) ? end() : j;
+  }
+
+  const_iterator find(const key_type &k) const {
+    node_type y = header;
+    node_type x = root();
+
+    while (x != 0) {
+      if (key_compare(key(x), k) == false) {
+        y = x;
+        x = x->left;
+      } else
+        x = x->right;
+    }
+    const_iterator j = const_iterator(y);
+    return (j == end() || key_compare(k, key(j.node))) ? end() : j;
+  }
+
+  size_type count(const key_type &k) const {
+    ft::pair<const_iterator, const_iterator> p = equal_range(k);
+    size_type n = ft::distance(p.first, p.second, n);
+    return n;
+  }
 };
 
 };  // namespace ft
