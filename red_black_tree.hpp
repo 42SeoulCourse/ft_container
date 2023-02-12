@@ -584,7 +584,59 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     return ft::pair<const_iterator, const_iterator>(lower_bound(k),
                                                     upper_bound(k));
   }
+
+ private:
+  void empty_initialize() {
+    color(header) = RED;
+    root() = 0;
+    leftmost() = header;
+    rightmost() = header;
+  }
+
+  iterator insert(node_type y, const value_type &v) {}
 };
+
+template <typename Key, typename Value, typename KeyOfValue, typename Compare,
+          typename Alloc>
+bool operator==(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
+                const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+  return x.size() == y.size() && ft::equal(x.begin(), x.end(), y.begin());
+}
+
+template <typename Key, typename Value, typename KeyOfValue, typename Compare,
+          typename Alloc>
+bool operator<(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
+               const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+  return ft::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
+}
+
+template <typename Key, typename Value, typename KeyOfValue, typename Compare,
+          typename Alloc>
+bool operator!=(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
+                const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+  return !(x == y);
+}
+
+template <typename Key, typename Value, typename KeyOfValue, typename Compare,
+          typename Alloc>
+bool operator>(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
+               const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+  return y < x;
+}
+
+template <typename Key, typename Value, typename KeyOfValue, typename Compare,
+          typename Alloc>
+bool operator<=(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
+                const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+  return !(y < x);
+}
+
+template <typename Key, typename Value, typename KeyOfValue, typename Compare,
+          typename Alloc>
+bool operator>=(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
+                const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+  return !(x < y);
+}
 
 };  // namespace ft
 
