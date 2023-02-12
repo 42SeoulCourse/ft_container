@@ -289,16 +289,16 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
   }
 
   // 루트와 min, max
-  node_type &root() const { return (link_type &)(header->parent); }
-  node_type &leftmost() const { return (link_type &)(header->left;) }
-  node_type &rightmost() const { return (link_type &)(header->right;) }
+  node_type &root() const { return (node_type &)(header->parent); }
+  node_type &leftmost() const { return (node_type &)(header->left;) }
+  node_type &rightmost() const { return (node_type &)(header->right;) }
 
   static node_type minimum(node_type x) { return RB_tree_node<V>::minimum(x); }
   static node_type maximum(node_type x) { return RB_tree_node<V>::maximum(x); }
 
   // 노드의 왼쪽, 오른쪽, 루트 체크
-  static bool is_left_child(link_type x) { return x == x->parent->left; }
-  static bool is_right_child(link_type x) { return x == x->parent->right; }
+  static bool is_left_child(node_type x) { return x == x->parent->left; }
+  static bool is_right_child(node_type x) { return x == x->parent->right; }
   static bool is_root(node_type x) { return x->parent == 0; }
 
   // 노드의 삼촌
@@ -618,6 +618,40 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     return iterator(z);
   }
 
+  // erase 와 copy 아직 안만듬
+
+  void RB_tree_rotate_left(node_type x) {
+    node_type y = x->right;
+    x->right = y->left;
+    if (y->left != 0) y->left->parent = x;
+    y->parent = x->parent;
+
+    if (x == root())
+      root() = y;
+    else if (x == x->parent->left)
+      x->parent->left = y;
+    else
+      x->parent->right = y;
+    y->left = x;
+    x->parent = y;
+  }
+
+  void RB_tree_rotate_right(node_type x) {
+    node_type y = x->left;
+    x->left = y->right;
+    if (y->right != 0) y->right->parent = x;
+    y->parent = x->parent;
+
+    if (x == root())
+      root() = y;
+    else if (x == x->parent->right)
+      x->parent->right = y;
+    else
+      x->parent->left = y;
+    y->right = x;
+    x->parent = y;
+  }
+
   void RB_tree_rebalance_for_insert(node_type n) {
     n->color = RED;
 
@@ -652,6 +686,152 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
       RB_tree_rotate_right(n->parent->parent);
     else
       RB_tree_rotate_left(n->parent->parent);
+  }
+
+  node_type RB_tree_rebalance_for_erase(node_type target) {
+    node_type successor = target;
+    node_type c = 0;
+    node_type c_parent = 0;
+
+    if (successor->left ==
+        0)  // target has at most one non-null child. successor == target.
+      c = successor->right;  // c might be null.
+    else if (successor->right ==
+             0)  // target has exactly one non-null child. successor == target.
+      c = successor->left;  // c is not null.
+    else {                  // target has two non-null children.
+      successor =
+          successor
+              ->right;  // Set successor to target's successor. c might be null.
+      while (successor->left != 0) successor = successor->left;
+      c = successor->right;
+    }
+
+    if (successor != target) {  // relink successor in place of target.
+                                // successor is target's successor
+      target->left->parent = successor;
+      successor->left = target->left;
+      if (successor != target->right) {
+        c_parent = successor->parent;
+        if (c) c->parent = successor->parent;
+        successor->parent->left = c;
+        successor->right = target->right;
+        target->right->parent = successor;
+      } else
+        c_parent = successor;
+      if (root() == target)
+        root() = successor;
+      else if (target->parent->left == target)
+        target->parent->left = successor;
+      else
+        target->parent->right = successor;
+      successor->parent = target->parent;
+      std::swap(successor->color, target->color);
+      successor = target;
+      // successor now points to node to be actually deleted
+    } else {  // successor ==target
+      c_parent = successor->parent;
+      if (c) c->parent = successor->parent;
+
+      if (root() == target)
+        root() = c;
+      else if (target->parent->left == target)
+        target->parent->left = c;
+      else
+        target->parent->right = c;
+
+      if (leftmost() == target) {
+        if (target->right == 0)  // target->left must be null also
+          leftmost() = target->parent;
+        // makes leftmost == header if target == root
+        else
+          leftmost() = Rb_tree_node<Value>::minimum(c);
+      }
+      if (rightmost() == target) {
+        if (target->left == 0)  // target->right must be null also
+          rightmost() = target->parent;
+        // make s rightmost == header if target == root
+        else  // c == target->left
+          rightmost() = Rb_tree_node<Value>::maximum(c);
+      }
+    }
+
+    // simple_case:
+    if (successor->color == BLACK) {
+      if (c && c->color == RED) {
+        c->color = BLACK;
+        return successor;
+      }
+    } else {
+    delete_case1:
+      if (c != root()) return successor;
+
+      // delete_case2:
+      node_type s = sibling(c);
+      if (s->color == RED) {
+        c->parent->color = RED;
+        s->color = BLACK;
+        if (is_left_child(c))
+          RB_tree_rotate_left(c->parent);
+        else
+          RB_tree_rotate_right(c->parent);
+      }
+      // delete_case3:
+      s = sibling(c);
+      if ((c->parent->color == BLACK) && (s->color == BLACK) &&
+          (s->left == 0 || s->left->color == BLACK) &&
+          (s->right == 0 || s->right->color == BLACK)) {
+        s->color = RED;
+        c = c->parent;
+        goto delete_case1;
+      }
+
+      // delete_case4:
+      s = sibling(c);
+      if ((c->parent->color == RED) && (s->color == BLACK) &&
+          (s->left == 0 || s->left->color == BLACK) &&
+          (s->right == 0 || s->right->color == BLACK)) {
+        s->color = RED;
+        c->parent->color = BLACK;
+        return c;
+      }
+
+      // delete_case5:
+      s = sibling(c);
+      if (s->color == BLACK) {  // this if statement is trivial,
+        // due to case 2 (even though case 2 changed the sibling to a sibling's
+        // child, the sibling's child can't be red, since no red parent can have
+        // a red child).
+        if (is_left_child(c) && (s->right == 0 || s->right->color == BLACK) &&
+            (s->left->color ==
+             RED)) {  // this last test is trivial too due to cases 2-4.
+          s->color = RED;
+          s->left->color = BLACK;
+          RB_tree_rotate_right(s);
+        } else if (is_right_child(c) &&
+                   (s->left == 0 || s->left->color == BLACK) &&
+                   (s->right->color == RED)) {  // this last test is trivial too
+                                                // due to cases 2-4.
+          s->color = RED;
+          s->right->color = BLACK;
+          RB_tree_rotate_left(s);
+        }
+      }
+
+      // delete_case6:
+      s = sibling(c);
+      s->color = c->parent->color;
+      c->parent->color = BLACK;
+      if (is_left_child(c)) {
+        if (s->right) s->right->color = BLACK;
+        RB_tree_rotate_left(c->parent);
+      } else {
+        if (s->left) s->left->color = BLACK;
+        RB_tree_rotate_right(c->parent);
+      }
+    }
+
+    return successor;
   }
 };
 
