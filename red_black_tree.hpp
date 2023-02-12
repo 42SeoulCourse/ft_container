@@ -593,7 +593,66 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     rightmost() = header;
   }
 
-  iterator insert(node_type y, const value_type &v) {}
+  // insert
+  iterator insert(node_type y, const value_type &v) {
+    node_type z;
+
+    if (y == header || key_compare(KeyOfValue()(v), key(y))) {
+      z = create_node(v);
+      y->left = z;
+      if (y == header) {
+        root() = z;
+        rightmost() = z;
+      } else if (y == leftmost())
+        leftmost() = z;
+    } else {
+      z = create_node(v);
+      y->right = z;
+      if (y == rightmost()) rightmost() = z;
+    }
+    z->parent = y;
+    z->left = 0;
+    z->right = 0;
+    RB_tree_rebalance_for_inser(z);
+    ++node_count;
+    return iterator(z);
+  }
+
+  void RB_tree_rebalance_for_insert(node_type n) {
+    n->color = RED;
+
+    // case1
+    if (n == root()) {
+      n->color = BLACK;
+      return;
+    }
+    // case2
+    if (n->parent->color == BLACK) return;
+    // case3
+    node_type u = uncle(n);
+    if (u && u->color == RED) {
+      n->parent->color = BLACK;
+      u->color = BLACK;
+      n->parent->parent->color = RED;
+      RB_tree_rebalance_for_insert(n->parent->parent);
+      return;
+    }
+    // case4
+    if (n == n->parent->right && n->parent == n->parent->parent->left) {
+      RB_tree_rotate_left(n->parent);
+      n = n->left;
+    } else if (n == n->parent->left && n->parent == n->parent->parent->right) {
+      RB_tree_rotate_right(n->parent);
+      n = n->right;
+    }
+    // case5
+    n->parent->color = BLACK;
+    n->parent->parent->color = RED;
+    if (n == n->parent->left && n->parent == n->parent->parent->left)
+      RB_tree_rotate_right(n->parent->parent);
+    else
+      RB_tree_rotate_left(n->parent->parent);
+  }
 };
 
 template <typename Key, typename Value, typename KeyOfValue, typename Compare,
