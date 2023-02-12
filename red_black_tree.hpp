@@ -518,6 +518,72 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     size_type n = ft::distance(p.first, p.second, n);
     return n;
   }
+
+  // key_compare(element(x), k) 가 false 인 경우. x >= k
+  iterator lower_bound(const key_type &k) {
+    node_type y = header;
+    node_type x = root();
+
+    while (x != 0) {
+      if (key_compare(key(x), k) == false) {
+        y = x;
+        x = x->left;
+      } else
+        x = x->right;
+    }
+    return iterator(y);
+  }
+
+  iterator upper_bound(const key_type &k) {
+    node_type y = header;
+    node_type x = root();
+
+    while (x != 0) {
+      if (key_compare(k, key(x))) {
+        y = x;
+        x = x->left;
+      } else
+        x = x->right;
+    }
+    return iterator(y);
+  }
+
+  const_iterator lower_bound(const key_type &k) const {
+    node_type y = header;
+    node_type x = root();
+
+    while (x != 0) {
+      if (key_compare(key(x), k) == false) {
+        y = x;
+        x = x->left;
+      } else
+        x = x->right;
+    }
+    return const_iterator(y);
+  }
+
+  const_iterator upper_bound(const key_type &k) const {
+    node_type y = header;
+    node_type x = root();
+
+    while (x != 0) {
+      if (key_compare(k, key(x))) {
+        y = x;
+        x = x->left;
+      } else
+        x = x->right;
+    }
+    return const_iterator(y);
+  }
+
+  ft::pair<iterator, iterator> equal_range(const key_type &k) {
+    return ft::pair<iterator, iterator>(lower_bound(k), upper_bound(k));
+  }
+
+  ft::pair<iterator, iterator> equal_range(const key_type &k) const {
+    return ft::pair<const_iterator, const_iterator>(lower_bound(k),
+                                                    upper_bound(k));
+  }
 };
 
 };  // namespace ft
