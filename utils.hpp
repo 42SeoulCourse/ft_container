@@ -16,6 +16,7 @@ typename ft::iterator_traits<InputIterator>::difference_type distance(
   return num;
 }
 
+// < 연산으로 비교하는 lexicographical_compare
 template <typename InputIterator1, typename InputIterator2>
 bool lexicographical_compare(InputIterator1 first1, InputIterator1 last1,
                              InputIterator2 first2, InputIterator2 last2) {
