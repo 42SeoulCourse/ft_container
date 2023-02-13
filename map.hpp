@@ -18,11 +18,11 @@ template <typename Key, typename T, typename Compare = std::less<Key>,
           typename Alloc = std::allocator<std::pair<const Key, T> > >
 class map {
  public:
-  typedef Key                                    key_type;
-  typedef T                                      mapped_type;
-  typedef std::pair<const key_type, mapped_type> value_type;
-  typedef Compare                                key_compare;
-  typedef Alloc                                  allocator_type;
+  typedef Key                               key_type;
+  typedef T                                 mapped_type;
+  typedef pair<const key_type, mapped_type> value_type;
+  typedef Compare                           key_compare;
+  typedef Alloc                             allocator_type;
 
   class value_compare
       : public std::binary_function<value_type, value_type, bool> {
@@ -64,6 +64,12 @@ class map {
   explicit map(const Compare        &comp,
                const allocator_type &alloc = allocator_type())
       : _tree(comp, alloc) {}
+
+  template <typename InputIterator>
+  map(InputIterator first, InputIterator last)
+      : _tree(Compare(), allocator_type()) {
+    _tree.insert_unique(first, last);
+  }
 
   template <typename InputIterator>
   map(InputIterator first, InputIterator last, const Compare &comp,
