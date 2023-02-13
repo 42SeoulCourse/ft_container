@@ -2,9 +2,11 @@
 #define RED_BLACK_TREE_HPP
 
 #include <iterator>
+#include <memory>
 
 #include "iterator.hpp"
 #include "pair.hpp"
+#include "reverse_iterator.hpp"
 #include "utils.hpp"
 
 namespace ft {
@@ -13,13 +15,12 @@ typedef bool             RB_tree_node_color;
 const RB_tree_node_color RED = false;
 const RB_tree_node_color BLACK = true;
 
-// 노드 구조체 및 successor, predecessor
-template <typename V>
+template <typename Value>
 struct RB_tree_node {
-  typedef RB_tree_node_color         color_type;
-  typedef RB_tree_node_color<Value> *node_type;
+  typedef RB_tree_node_color   color_type;
+  typedef RB_tree_node<Value> *node_type;
 
-  V          value;
+  Value      value_field;
   color_type color;
   node_type  parent;
   node_type  left;
@@ -36,23 +37,26 @@ struct RB_tree_node {
   }
 };
 
-template <typename V>
-class RB_tree_iterator {
-  typedef V                              value_type;
-  typedef V                             &reference;
-  typedef V                             *pointer;
-  typedef ptrdiff_t                      difference_type;
+template <typename Value>
+struct RB_tree_iterator {
+  typedef Value     value_type;
+  typedef Value    &reference;
+  typedef Value    *pointer;
+  typedef ptrdiff_t difference_type;
+
   typedef ft::bidirectional_iterator_tag iterator_category;
-  typedef RB_tree_node<V>               *node_type;
-  node_type                              node;
+
+  typedef RB_tree_node<Value> *node_type;
+
+  node_type node;
 
  public:
-  RB_tree_iterator() : node(0) {}
-  RB_tree_iterator(node_type x) : node(x) {}
-  RB_tree_iterator(const RB_tree_iterator<V> &it) : node(it.node) {}
+  RB_tree_iterator() {}
+  RB_tree_iterator(node_type x) { node = x; }
+  RB_tree_iterator(const RB_tree_iterator<Value> &it) { node = it.node; }
 
   // reference operator*() const { return node_type(node)->value; }
-  reference operator*() const { return node->value; }
+  reference operator*() const { return node->value_field; }
   pointer   operator->() const { return &(operator*()); }
 
   RB_tree_iterator &operator++() {
@@ -77,8 +81,12 @@ class RB_tree_iterator {
     return tmp;
   }
 
-  bool operator==(const RB_tree_iterator &it) const { return node == it.node; }
-  bool operator!=(const RB_tree_iterator &it) const { return node == it.node; }
+  bool operator==(const RB_tree_iterator<Value> &x) const {
+    return node == x.node;
+  }
+  bool operator!=(const RB_tree_iterator<Value> &x) const {
+    return node == x.node;
+  }
 
  protected:
   void increment() {
@@ -118,52 +126,59 @@ class RB_tree_iterator {
   }
 };
 
-template <typename V>
-class RB_tree_const_iterator {
-  typedef V                              value_type;
-  typedef const V                       &reference;
-  typedef const V                       *pointer;
+template <typename Value>
+struct RB_tree_const_iterator {
+  typedef Value                          value_type;
+  typedef const Value                   &reference;
+  typedef const Value                   *pointer;
   typedef ptrdiff_t                      difference_type;
   typedef ft::bidirectional_iterator_tag iterator_category;
-  typedef RB_tree_node<V>               *node_type;
-  node_type                              node;
 
- public:
-  RB_tree_const_iterator() : node(0) {}
-  RB_tree_const_iterator(node_type x) : node(x) {}
-  RB_tree_const_iterator(const RB_tree_iterator<V> &it) : node(it.node) {}
-  RB_tree_const_iterator(const RB_tree_const_iterator<V> &it) : node(it.node) {}
+  typedef const RB_tree_node<Value> *node_type;
+
+  node_type node;
+
+  RB_tree_const_iterator() {}
+  RB_tree_const_iterator(node_type x) { node = x; }
+  RB_tree_const_iterator(const RB_tree_iterator<Value> &it) { node = it.node; }
+  RB_tree_const_iterator(const RB_tree_const_iterator<Value> &it) {
+    node = it.node;
+  }
 
   // reference operator*() const { return node_type(node)->value; }
-  reference operator*() const { return node->value; }
+  reference operator*() const { return node->value_field; }
   pointer   operator->() const { return &(operator*()); }
 
-  RB_tree_iterator &operator++() {
+  RB_tree_const_iterator &operator++() {
     increment();
     return *this;
   }
 
-  RB_tree_iterator operator++(int) {
-    RB_tree_iterator tmp = *this;
+  RB_tree_const_iterator operator++(int) {
+    RB_tree_const_iterator tmp = *this;
     increment();
     return tmp;
   }
 
-  RB_tree_iterator &operator--() {
+  RB_tree_const_iterator &operator--() {
     decrement();
     return *this;
   }
 
-  RB_tree_iterator operator--(int) {
-    RB_tree_iterator tmp = *this;
+  RB_tree_const_iterator operator--(int) {
+    RB_tree_const_iterator tmp = *this;
     decrement();
     return tmp;
   }
 
-  bool operator==(const RB_tree_iterator &it) const { return node == it.node; }
-  bool operator!=(const RB_tree_iterator &it) const { return node == it.node; }
+  bool operator==(const RB_tree_const_iterator &it) const {
+    return node == it.node;
+  }
+  bool operator!=(const RB_tree_const_iterator &it) const {
+    return node == it.node;
+  }
 
- protected:
+ private:
   void increment() {
     // 오른쪽으로 갔다가, 왼쪽으로 간다.
     if (node->right != 0) {
@@ -205,7 +220,7 @@ template <typename T, typename Allocator>
 class RB_tree_base {
  public:
   typedef Allocator allocator_type;
-  typedef typename Allocator::template rebind<RB_tree_base<T> >::other
+  typedef typename allocator_type::template rebind<RB_tree_node<T> >::other
                  node_allocator_type;
   allocator_type get_allocator() const { return node_allocator; }
 
@@ -226,15 +241,15 @@ class RB_tree_base {
 };
 
 template <typename Key, typename Value, typename KeyOfValue, typename Compare,
-          typename Alloc = std::allocator<Value> >
-class RB_tree : protected RB_tree_base<V, Allocator> {
-  typedef RB_tree_base<V, Allocator> base;
-  typedef RB_tree_node<V>           *node_type;
-  typedef RB_tree_node_color         color_type;
-  // using Base::header;
-  // using Base::get_node;
-  // using Base::put_node;
-  // using Base::value_allocator;
+          typename Allocator = std::allocator<Value> >
+class RB_tree : protected RB_tree_base<Value, Allocator> {
+  typedef RB_tree_base<Value, Allocator> base;
+  typedef RB_tree_node<Value>           *node_type;
+  typedef RB_tree_node_color             color_type;
+  using base::get_node;
+  using base::header;
+  using base::put_node;
+  using base::value_allocator;
 
  public:
   // 트리 노드 요소
@@ -265,7 +280,7 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
   node_type create_node(const value_type &x) {
     node_type tmp = get_node();
     try {
-      value_allocator.construct(&tmp->value, x);
+      value_allocator.construct(&tmp->value_field, x);
       tmp->left = 0;
       tmp->right = 0;
     } catch (...) {
@@ -276,7 +291,7 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
   }
 
   node_type clone_node(node_type x) {
-    node_type tmp = create_node(x->value);
+    node_type tmp = create_node(x->value_field);
     tmp->color = x->color;
     tmp->left = 0;
     tmp->right = 0;
@@ -284,17 +299,21 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
   }
 
   void destroy_node(node_type p) {
-    value_allocator.destroy(&p->value);
+    value_allocator.destroy(&p->value_field);
     put_node(p);
   }
 
   // 루트와 min, max
   node_type &root() const { return (node_type &)(header->parent); }
-  node_type &leftmost() const { return (node_type &)(header->left;) }
-  node_type &rightmost() const { return (node_type &)(header->right;) }
+  node_type &leftmost() const { return (node_type &)(header->left); }
+  node_type &rightmost() const { return (node_type &)(header->right); }
 
-  static node_type minimum(node_type x) { return RB_tree_node<V>::minimum(x); }
-  static node_type maximum(node_type x) { return RB_tree_node<V>::maximum(x); }
+  static node_type minimum(node_type x) {
+    return RB_tree_node<Value>::minimum(x);
+  }
+  static node_type maximum(node_type x) {
+    return RB_tree_node<Value>::maximum(x);
+  }
 
   // 노드의 왼쪽, 오른쪽, 루트 체크
   static bool is_left_child(node_type x) { return x == x->parent->left; }
@@ -311,7 +330,7 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     return (is_left_child(x) ? x->parent->right : x->parent->left);
   }
 
-  static reference   value(node_type x) { return x->value; }
+  static reference   value(node_type x) { return x->value_field; }
   static const Key  &key(node_type x) { return KeyOfValue()(value(x)); }
   static color_type &color(node_type x) { return (color_type &)(x->color); }
 
@@ -325,7 +344,7 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     empty_initialize();
   }
 
-  RB_tree(const Rb_tree<Key, Value, KeyOfValue, Compare, Allocator> &x)
+  RB_tree(const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &x)
       : base(x.get_allocator()), node_count(0), key_compare(x.key_compare) {
     if (x.root() == 0) {
       empty_initialize();
@@ -337,7 +356,7 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     }
   }
 
-  ~RB_tree(){clear()};
+  ~RB_tree() { clear(); }
 
   RB_tree &operator=(const RB_tree &x) {
     if (this != &x) {
@@ -430,7 +449,8 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
         else
           return insert_unique(v).first;  // 들어올 노드가 position의 자식일 때
       else
-        return insert_unique(v).first;  // 들어올 노드가 position의 형제가 아닐 때
+        return insert_unique(v)
+            .first;  // 들어올 노드가 position의 형제가 아닐 때
     }
   }
 
@@ -448,7 +468,7 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
   }
 
   // x 까지 지우기?
-  size_type erase(const key_tyhpe &x) {
+  size_type erase(const key_type &x) {
     ft::pair<iterator, iterator> p = equal_range(x);
     size_type                    n = ft::distance(p.first, p.second);
     erase(p.first, p.second);
@@ -612,12 +632,44 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     z->parent = y;
     z->left = 0;
     z->right = 0;
-    RB_tree_rebalance_for_inser(z);
+    RB_tree_rebalance_for_insert(z);
     ++node_count;
     return iterator(z);
   }
 
-  // erase 와 copy 아직 안만듬
+  // copy 아직 안만듬
+  node_type copy(node_type x, node_type p) {
+    node_type top = clone_node(x);
+    top->parent = p;
+
+    try {
+      if (x->right) top->right = copy(x->right, top);
+      p = top;
+      x = x->left;
+
+      while (x != 0) {
+        node_type y = clone_node(x);
+        p->left = y;
+        y->parent = p;
+        if (x->right) y->right = copy(x->right, y);
+        p = y;
+        x = x->left;
+      }
+    } catch (...) {
+      erase(top);
+      throw;
+    }
+    return top;
+  }
+
+  void erase(node_type x) {
+    while (x != 0) {
+      erase(x->right);
+      node_type y = x->left;
+      destroy_node(x);
+      x = y;
+    }
+  }
 
   void RB_tree_rotate_left(node_type x) {
     node_type y = x->right;
@@ -744,14 +796,14 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
           leftmost() = target->parent;
         // makes leftmost == header if target == root
         else
-          leftmost() = Rb_tree_node<Value>::minimum(c);
+          leftmost() = RB_tree_node<Value>::minimum(c);
       }
       if (rightmost() == target) {
         if (target->left == 0)  // target->right must be null also
           rightmost() = target->parent;
         // make s rightmost == header if target == root
         else  // c == target->left
-          rightmost() = Rb_tree_node<Value>::maximum(c);
+          rightmost() = RB_tree_node<Value>::maximum(c);
       }
     }
 
@@ -835,47 +887,47 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
 };
 
 template <typename Key, typename Value, typename KeyOfValue, typename Compare,
-          typename Alloc>
-bool operator==(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
-                const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+          typename Allocator>
+bool operator==(const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &x,
+                const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &y) {
   return x.size() == y.size() && ft::equal(x.begin(), x.end(), y.begin());
 }
 
 template <typename Key, typename Value, typename KeyOfValue, typename Compare,
-          typename Alloc>
-bool operator<(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
-               const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+          typename Allocator>
+bool operator<(const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &x,
+               const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &y) {
   return ft::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 }
 
 template <typename Key, typename Value, typename KeyOfValue, typename Compare,
-          typename Alloc>
-bool operator!=(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
-                const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+          typename Allocator>
+bool operator!=(const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &x,
+                const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &y) {
   return !(x == y);
 }
 
 template <typename Key, typename Value, typename KeyOfValue, typename Compare,
-          typename Alloc>
-bool operator>(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
-               const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+          typename Allocator>
+bool operator>(const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &x,
+               const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &y) {
   return y < x;
 }
 
 template <typename Key, typename Value, typename KeyOfValue, typename Compare,
-          typename Alloc>
-bool operator<=(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
-                const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+          typename Allocator>
+bool operator<=(const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &x,
+                const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &y) {
   return !(y < x);
 }
 
 template <typename Key, typename Value, typename KeyOfValue, typename Compare,
-          typename Alloc>
-bool operator>=(const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &x,
-                const RB_tree<Key, Value, KeyOfValue, Compare, Alloc> &y) {
+          typename Allocator>
+bool operator>=(const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &x,
+                const RB_tree<Key, Value, KeyOfValue, Compare, Allocator> &y) {
   return !(x < y);
 }
 
 };  // namespace ft
 
-#endif RED_BLACK_TREE_HPP
+#endif
