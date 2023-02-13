@@ -407,7 +407,7 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
     return pair<iterator, bool>(j, false);
   }
 
-  iterator insert_unique(iterator posirion, const value_type &v) {
+  iterator insert_unique(iterator position, const value_type &v) {
     if (position.node == header->left) {  // 노드의 위치가 begin();
       if (size() > 0 && key_compare(KeyOfValue()(v), key(position.node)))
         return insert(position.node, v);  // 들어올 노드가 가장 작을 때
@@ -430,8 +430,7 @@ class RB_tree : protected RB_tree_base<V, Allocator> {
         else
           return insert_unique(v).first;  // 들어올 노드가 position의 자식일 때
       else
-        return insert_unique(v)
-            .first;  // 들어올 노드가 position의 형제가 아닐 때
+        return insert_unique(v).first;  // 들어올 노드가 position의 형제가 아닐 때
     }
   }
 
