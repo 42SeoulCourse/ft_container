@@ -15,7 +15,7 @@ struct Select1st : public std::unary_function<Pair, typename Pair::first_type> {
 };
 
 template <typename Key, typename T, typename Compare = std::less<Key>,
-          typename Alloc = std::allocator<std::pair<const Key, T> > >
+          typename Alloc = std::allocator<ft::pair<const Key, T> > >
 class map {
  public:
   typedef Key                               key_type;

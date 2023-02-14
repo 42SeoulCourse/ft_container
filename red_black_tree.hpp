@@ -2,7 +2,6 @@
 #define RED_BLACK_TREE_HPP
 
 #include <iterator>
-#include <memory>
 
 #include "iterator.hpp"
 #include "pair.hpp"
@@ -599,7 +598,7 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
     return ft::pair<iterator, iterator>(lower_bound(k), upper_bound(k));
   }
 
-  ft::pair<iterator, iterator> equal_range(const key_type &k) const {
+  ft::pair<const_iterator, const_iterator> equal_range(const key_type &k) const {
     return ft::pair<const_iterator, const_iterator>(lower_bound(k),
                                                     upper_bound(k));
   }
