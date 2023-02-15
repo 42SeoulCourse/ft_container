@@ -153,24 +153,20 @@ class map {
   pair<const_iterator, const_iterator> equal_range(const key_type &x) const {
     return _tree.equal_range(x);
   }
-};
 
-template <typename Key, typename T, typename Compare, typename Alloc>
-bool operator==(const map<Key, T, Compare, Alloc> &x,
-                const map<Key, T, Compare, Alloc> &y) {
-  return (x == y);
-}
+  // _tree 가 private 멤버이기 때문에 friend 로 선언해줘야 한다.
+  friend bool operator==(const map &x, const map &y) {
+    return x._tree == y._tree;
+  }
+  friend bool operator<(const map &x, const map &y) {
+    return x._tree < y._tree;
+  }
+};
 
 template <typename Key, typename T, typename Compare, typename Alloc>
 bool operator!=(const map<Key, T, Compare, Alloc> &x,
                 const map<Key, T, Compare, Alloc> &y) {
   return !(x == y);
-}
-
-template <typename Key, typename T, typename Compare, typename Alloc>
-bool operator<(const map<Key, T, Compare, Alloc> &x,
-               const map<Key, T, Compare, Alloc> &y) {
-  return (x < y);
 }
 
 template <typename Key, typename T, typename Compare, typename Alloc>
