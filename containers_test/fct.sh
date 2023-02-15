@@ -53,7 +53,7 @@ getEmoji () {
 	case $1 in
 		0) emoji="${GREEN}✅";;
 		1) emoji="${RED}❌";;
-		2) emoji="${YELLOW}⚠️ ";;
+		2) emoji="${YELLOW}🙂";;
 	esac
 	printf "${BOLD}${emoji}${EOC}"
 }
