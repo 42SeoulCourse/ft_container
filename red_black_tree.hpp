@@ -133,14 +133,16 @@ struct RB_tree_const_iterator {
   typedef ptrdiff_t                      difference_type;
   typedef ft::bidirectional_iterator_tag iterator_category;
 
-  typedef const RB_tree_node<Value> *node_type;
+  typedef RB_tree_node<value_type> *node_type;
 
   node_type node;
 
   RB_tree_const_iterator() {}
   RB_tree_const_iterator(node_type x) { node = x; }
-  RB_tree_const_iterator(const RB_tree_iterator<Value> &it) { node = it.node; }
-  RB_tree_const_iterator(const RB_tree_const_iterator<Value> &it) {
+  RB_tree_const_iterator(const RB_tree_iterator<value_type> &it) {
+    node = it.node;
+  }
+  RB_tree_const_iterator(const RB_tree_const_iterator<value_type> &it) {
     node = it.node;
   }
 
@@ -528,12 +530,12 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
         x = x->right;
     }
     const_iterator j = const_iterator(y);
-    return (j == end() || key_compare(k, key(j.node))) ? end() : j;
+    return ((j == end() || key_compare(k, key(j.node))) ? end() : j);
   }
 
   size_type count(const key_type &k) const {
     ft::pair<const_iterator, const_iterator> p = equal_range(k);
-    size_type n = ft::distance(p.first, p.second, n);
+    size_type n = ft::distance(p.first, p.second);
     return n;
   }
 
