@@ -434,7 +434,7 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
             .first;  // 들어올 노드가 가장 작은 노드의 형제일 때
     } else if (position.node == header) {  // 노드의 위치가 헤더일 때
       if (key_compare(key(rightmost()), KeyOfValue()(v)))
-        return insert(0, v);  // 들어올 노드가 가장 큰 노드의 형제일 때
+        return insert(rightmost(), v);  // 들어올 노드가 가장 큰 노드의 형제일 때
       else
         return insert_unique(v).first;  // 들어올 노드가 가장 큰 노드일 때
     } else {
