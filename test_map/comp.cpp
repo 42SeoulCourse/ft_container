@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "all.hpp"
 
 #define T1 char
 #define T2 foo<float>
@@ -22,9 +23,7 @@ int		main(void)
 {
 	_map	mp;
 
-	std::cout << "1" << std::endl;
 	mp['a'] = 2.3;
-	std::cout << "1" << std::endl;
 	mp['b'] = 1.4;
 	mp['c'] = 0.3;
 	mp['d'] = 4.2;
