@@ -84,7 +84,7 @@ struct RB_tree_iterator {
     return node == x.node;
   }
   bool operator!=(const RB_tree_iterator<Value> &x) const {
-    return node == x.node;
+    return node != x.node;
   }
 
  protected:
@@ -174,17 +174,16 @@ struct RB_tree_const_iterator {
     return node == it.node;
   }
   bool operator!=(const RB_tree_const_iterator &it) const {
-    return node == it.node;
+    return node != it.node;
   }
 
- private:
+ protected:
   void increment() {
     // 오른쪽으로 갔다가, 왼쪽으로 간다.
     if (node->right != 0) {
       node = node->right;
       while (node->left != 0) node = node->left;
-    } else {  // 오른쪽이 없으면, 부모로 간다. 부모가 왼쪽일 때까지 올라간다.
-              // 부모가 왼쪽이면, 부모를 리턴한다.
+    } else {
       node_type y = node->parent;
       while (node == y->right) {
         node = y;
@@ -351,8 +350,8 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
       root() = copy(x.root(), header);
       leftmost() = minimum(root());
       rightmost() = maximum(root());
-      node_count = x.node_count;
     }
+    node_count = x.node_count;
   }
 
   ~RB_tree() { clear(); }
@@ -434,7 +433,8 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
             .first;  // 들어올 노드가 가장 작은 노드의 형제일 때
     } else if (position.node == header) {  // 노드의 위치가 헤더일 때
       if (key_compare(key(rightmost()), KeyOfValue()(v)))
-        return insert(rightmost(), v);  // 들어올 노드가 가장 큰 노드의 형제일 때
+        return insert(rightmost(),
+                      v);  // 들어올 노드가 가장 큰 노드의 형제일 때
       else
         return insert_unique(v).first;  // 들어올 노드가 가장 큰 노드일 때
     } else {
@@ -598,7 +598,8 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
     return ft::pair<iterator, iterator>(lower_bound(k), upper_bound(k));
   }
 
-  ft::pair<const_iterator, const_iterator> equal_range(const key_type &k) const {
+  ft::pair<const_iterator, const_iterator> equal_range(
+      const key_type &k) const {
     return ft::pair<const_iterator, const_iterator>(lower_bound(k),
                                                     upper_bound(k));
   }
