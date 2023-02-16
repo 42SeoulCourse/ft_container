@@ -30,14 +30,15 @@ class set {
   _Tree_type _tree;
 
  public:
-  typedef typename _Tree_type::pointer         pointer;
+// 왜 const?????
+  typedef typename _Tree_type::const_pointer   pointer;
   typedef typename _Tree_type::const_pointer   const_pointer;
-  typedef typename _Tree_type::reference       reference;
+  typedef typename _Tree_type::const_reference reference;
   typedef typename _Tree_type::const_reference const_reference;
 
-  typedef typename _Tree_type::iterator               iterator;
+  typedef typename _Tree_type::const_iterator         iterator;
   typedef typename _Tree_type::const_iterator         const_iterator;
-  typedef typename _Tree_type::reverse_iterator       reverse_iterator;
+  typedef typename _Tree_type::const_reverse_iterator reverse_iterator;
   typedef typename _Tree_type::const_reverse_iterator const_reverse_iterator;
 
   typedef typename _Tree_type::size_type       size_type;
@@ -70,7 +71,7 @@ class set {
   }
 
   /* destructor */
-  ~set() {};
+  ~set(){};
 
   /* iterators */
   iterator       begin() { return _tree.begin(); }
