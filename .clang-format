@@ -1,7 +1,8 @@
 ﻿---
+PointerAlignment: Left
 BasedOnStyle: Google
 AlignConsecutiveDeclarations: 'true'
-
+ColumnLimit : 0
 ...
 
 # ---
@@ -28,7 +29,6 @@ AlignConsecutiveDeclarations: 'true'
 # BreakBeforeBraces: Attach
 # Language: Cpp
 # ObjCSpaceBeforeProtocolList: 'true'
-# PointerAlignment: Left
 # SortIncludes: 'true'
 # SortUsingDeclarations: 'true'
 # SpaceAfterCStyleCast: 'true'

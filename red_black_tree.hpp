@@ -38,14 +38,12 @@ struct RB_tree_node {
 
 template <typename Value>
 struct RB_tree_iterator {
-  typedef Value     value_type;
-  typedef Value    &reference;
-  typedef Value    *pointer;
-  typedef ptrdiff_t difference_type;
-
+  typedef Value                          value_type;
+  typedef Value                         &reference;
+  typedef Value                         *pointer;
+  typedef ptrdiff_t                      difference_type;
   typedef ft::bidirectional_iterator_tag iterator_category;
-
-  typedef RB_tree_node<Value> *node_type;
+  typedef RB_tree_node<Value>           *node_type;
 
   node_type node;
 
@@ -230,7 +228,7 @@ class RB_tree_base {
   node_allocator_type node_allocator;
 
   RB_tree_node<T> *get_node() { return node_allocator.allocate(1); }
-  void put_node(RB_tree_node<T> *p) { node_allocator.deallocate(p, 1); }
+  void             put_node(RB_tree_node<T> *p) { node_allocator.deallocate(p, 1); }
 
  public:
   RB_tree_base(const allocator_type &alloc = allocator_type())
@@ -271,7 +269,7 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
 
   // 트리 할당기
   typedef typename base::allocator_type allocator_type;
-  allocator_type get_allocator() const { return base::get_allocator(); }
+  allocator_type                        get_allocator() const { return base::get_allocator(); }
 
  private:
   size_type node_count;   // 노드 개수
@@ -432,7 +430,7 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
         return insert(position.node, v);  // 들어올 노드가 가장 작을 때
       else
         return insert_unique(v)
-            .first;  // 들어올 노드가 가장 작은 노드의 형제일 때
+            .first;                        // 들어올 노드가 가장 작은 노드의 형제일 때
     } else if (position.node == header) {  // 노드의 위치가 헤더일 때
       if (key_compare(key(rightmost()), KeyOfValue()(v)))
         return insert(rightmost(),
@@ -535,7 +533,7 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
 
   size_type count(const key_type &k) const {
     ft::pair<const_iterator, const_iterator> p = equal_range(k);
-    size_type n = ft::distance(p.first, p.second);
+    size_type                                n = ft::distance(p.first, p.second);
     return n;
   }
 
@@ -747,10 +745,10 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
     node_type c_parent = 0;
 
     if (successor->left ==
-        0)  // target has at most one non-null child. successor == target.
+        0)                   // target has at most one non-null child. successor == target.
       c = successor->right;  // c might be null.
     else if (successor->right ==
-             0)  // target has exactly one non-null child. successor == target.
+             0)             // target has exactly one non-null child. successor == target.
       c = successor->left;  // c is not null.
     else {                  // target has two non-null children.
       successor =

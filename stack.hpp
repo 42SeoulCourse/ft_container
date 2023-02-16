@@ -65,7 +65,8 @@ bool operator!=(const stack<T, Container> &lhs,
 }
 
 template <typename T, typename Container>
-bool operator<(const stack<T, Container> &lhs, const stack<T, Container> &rhs) {
+bool operator<(const stack<T, Container> &lhs,
+               const stack<T, Container> &rhs) {
   return lhs.c < rhs.c;
 }
 
@@ -76,7 +77,8 @@ bool operator<=(const stack<T, Container> &lhs,
 }
 
 template <typename T, typename Container>
-bool operator>(const stack<T, Container> &lhs, const stack<T, Container> &rhs) {
+bool operator>(const stack<T, Container> &lhs,
+               const stack<T, Container> &rhs) {
   return lhs.c > rhs.c;
 }
 

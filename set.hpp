@@ -24,23 +24,23 @@ class set {
   typedef Alloc   allocator_type;
 
  private:
-  typedef RB_tree<key_type, value_type, Identity<value_type>, key_compare,
-                  Alloc>
+  typedef RB_tree<key_type, value_type, Identity<value_type>, key_compare, Alloc>
              _Tree_type;
   _Tree_type _tree;
 
  public:
-// 왜 const?????
+  // 왜 const?????
+  // pointer, reference
   typedef typename _Tree_type::const_pointer   pointer;
   typedef typename _Tree_type::const_pointer   const_pointer;
   typedef typename _Tree_type::const_reference reference;
   typedef typename _Tree_type::const_reference const_reference;
-
+  // iterator
   typedef typename _Tree_type::const_iterator         iterator;
   typedef typename _Tree_type::const_iterator         const_iterator;
   typedef typename _Tree_type::const_reverse_iterator reverse_iterator;
   typedef typename _Tree_type::const_reverse_iterator const_reverse_iterator;
-
+  // size_type
   typedef typename _Tree_type::size_type       size_type;
   typedef typename _Tree_type::difference_type difference_type;
 
