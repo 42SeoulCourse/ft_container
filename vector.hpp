@@ -31,14 +31,13 @@ class vector {
 
   /***************************** Member variables *****************************/
  private:
-  pointer        _start;     // 첫번째 원소를 가리킨다.
-  pointer        _end;       // 마지막 원소의 다음 원소를 가리킨다.
-  pointer        _capa_end;  // 마지막 원소의 다음 원소를 가리킨다.
+  pointer        _start;
+  pointer        _end;
+  pointer        _capa_end;
   allocator_type _alloc;
 
   /***************************** Member functions *****************************/
  public:
-  // Common Things =============================================================
   // constructors for c++98 __ constructs the vector
   explicit vector(const allocator_type& alloc = allocator_type())
       : _start(NULL), _end(NULL), _capa_end(NULL), _alloc(alloc) {
@@ -78,8 +77,6 @@ class vector {
     }
   }
 
-  // 매개변수를 const 로 받기 때문에 내부에서 직접 start를 바꿀 수 없기 때문에
-  // p에 옮겨서 복사했다.
   vector(const vector& other) : _alloc(other._alloc) {
     size_type count = other.size();
     _start = _alloc.allocate(count);
@@ -121,13 +118,9 @@ class vector {
     _alloc.deallocate(_start, this->capacity());
   }
 
-  // get_allocator for c++98 __ returns the associated allocator
   allocator_type get_allocator() const { return this->_alloc; }
 
   // Element access ============================================================
-  // at for c++98 __ access specified element with bounds checking.
-  // Return reference to element at pos, exception if out of range is thrown
-  // PASS
   reference at(size_type position) {
     if (position >= this->size()) {
       throw std::out_of_range("vector::at");
@@ -141,16 +134,11 @@ class vector {
     return ((*this)[position]);
   }
 
-  // operator[] for c++98 __ access specified element
-  // Return reference to element at pos, no bounds checking is performed.
   reference             operator[](size_type pos) { return this->_start[pos]; }
   const const_reference operator[](size_type pos) const {
     return this->_start[pos];
   }
 
-  // front for c++98 __ access the first element
-  // Return reference to the first element in the vector container
-  // Calling front on an empty container is undefined.
   reference front() {
     try {
       if (this->empty()) throw std::out_of_range("vector is empty");
@@ -170,9 +158,6 @@ class vector {
     }
   }
 
-  // back for c++98 __ access the last element
-  // Return reference to the last element in the vector container
-  // Calling back on an empty container is undefined.
   reference back() {
     try {
       if (this->empty()) throw std::out_of_range("vector is empty");
@@ -193,34 +178,17 @@ class vector {
   }
 
   // Iterators =================================================================
-  // begin for c++98 __ returns an iterator to the beginning
-  // Returns an iterator to the first element of the vector.
-  // If the vector is empty, the returned iterator will be equal to end().
   iterator       begin() { return (_start); }
   const_iterator begin() const { return (_start); }
 
-  // end for c++98 __ returns an iterator to the end
-  // Returns an iterator to the element following the last element of the
-  // vector container.
-  // This element acts as a placeholder; attempting to access it results in
-  // undefined behavior.
   iterator       end() { return (_end); }
   const_iterator end() const { return (_end); }
 
-  // rbegin for c++98 __ returns a reverse iterator to the beginning
-  // Returns a reverse iterator to the first element of the reversed vector.
-  // It corresponds to the last element of the non-reversed vector. If the
-  // vector is empty, the returned iterator is equal to rend().
   reverse_iterator             rbegin() { return (reverse_iterator(_end)); }
   const const_reverse_iterator rbegin() const {
     return (reverse_iterator(_end));
   }
 
-  // rend for c++98 __ returns a reverse iterator to the end
-  // Returns a reverse iterator to the element following the last element of the
-  // reversed vector. It corresponds to the element preceding the first element
-  // of the non-reversed vector. This element acts as a placeholder, attempting
-  // to access it results in undefined behavior.
   reverse_iterator             rend() { return (reverse_iterator(_start)); }
   const const_reverse_iterator rend() const {
     return (reverse_iterator(_start));
@@ -240,14 +208,15 @@ class vector {
   // resize for c++98
   void resize(size_type n, value_type val = value_type()) {
     if (n > this->max_size())
-      throw std::length_error("new size must be less than max_size");
+      throw std::length_error("ft::vector::resize: n > max_size()");
+    if (this->size() == n)
+      return;
     if (n < this->size()) {
-      while (n < this->size()) {
-        this->pop_back();
-      }
-    } else if (n > this->size()) {
-      if (this->capacity() < n) this->reserve(n);
-      while (n > this->size()) this->push_back(val);
+      while (this->size() != n)
+        pop_back();
+    } else {
+      if (this->capacity() * 2 < n) reserve(n);
+      while (this->size() != n) push_back(val);
     }
   }
 
@@ -352,8 +321,7 @@ class vector {
   // 반환값은 인서트한 곳이다. 얼마나 reserve 해야할지 판단. end 에서 부터 값을
   // 하나씩 뒤로 미뤄서 넣고, 파괴한다. 그리고 insert, end 값 ++로 마무리
   iterator insert(iterator position, const value_type& val) {
-    size_type pos = &*position - _start;  // 포인터이기 때문에, &* 를 사용해서
-                                          // size_type으로 바꿔서 연산한다.
+    size_type pos = &*position - _start;
     size_type rpos = _end - &*position;
 
     if (this->size() == 0)
@@ -480,8 +448,6 @@ class vector {
   }
 
   // swap for c++98 __ exchanges the contents of the container
-  // Exchanges the content of the container by the content of x, which is
-  // another vector object of the same type. Sizes may differ.
   void swap(vector& x) {
     pointer        temp_start;
     pointer        temp_end;
