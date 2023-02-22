@@ -29,7 +29,6 @@ class set {
   _Tree_type _tree;
 
  public:
-  // 왜 const?????
   // pointer, reference
   typedef typename _Tree_type::const_pointer   pointer;
   typedef typename _Tree_type::const_pointer   const_pointer;

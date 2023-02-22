@@ -9,7 +9,6 @@
 #include "utils.hpp"
 
 namespace ft {
-// 컬러 설정
 typedef bool             RB_tree_node_color;
 const RB_tree_node_color RED = false;
 const RB_tree_node_color BLACK = true;
@@ -25,7 +24,6 @@ struct RB_tree_node {
   node_type  left;
   node_type  right;
 
-  // 노드가 어떤 타입인지 모르기때문에 x라는 미지수를 사용하자
   static node_type minimum(node_type x) {
     while (x->left != 0) x = x->left;
     return x;
@@ -179,7 +177,6 @@ struct RB_tree_const_iterator {
 
  protected:
   void increment() {
-    // 오른쪽으로 갔다가, 왼쪽으로 간다.
     if (node->right != 0) {
       node = node->right;
       while (node->left != 0) node = node->left;
@@ -194,8 +191,6 @@ struct RB_tree_const_iterator {
   }
 
   void decrement() {
-    // 노드가 헤더인지 아닌지 확인. 헤더를 RED 로, 헤더의 parent 는 root 이다.
-    // head 를 end 라고 생각하면, -- 했을 때 right most 값
     if (node->color == RED && node->parent->parent == node)
       node = node->right;
     else if (node->left != 0) {  // 왼쪽 자식이 있으면 왼쪽 자식의 right most 값
@@ -448,8 +443,7 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
         else
           return insert_unique(v).first;  // 들어올 노드가 position의 자식일 때
       else
-        return insert_unique(v)
-            .first;  // 들어올 노드가 position의 형제가 아닐 때
+        return insert_unique(v).first;  // 들어올 노드가 position의 형제가 아닐 때
     }
   }
 
@@ -459,14 +453,12 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
   };
 
   // delete
-  // 노드 지우기
   void erase(iterator position) {
     node_type n = RB_tree_rebalance_for_erase(position.node);
     destroy_node(n);
     --node_count;
   }
 
-  // x 까지 지우기?
   size_type erase(const key_type &x) {
     ft::pair<iterator, iterator> p = equal_range(x);
     size_type                    n = ft::distance(p.first, p.second);
@@ -474,7 +466,6 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
     return n;
   }
 
-  // 반복자로 범위 지우기
   void erase(iterator first, iterator last) {
     if (first == begin() && last == end())
       clear();
@@ -482,7 +473,6 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
       while (first != last) erase(first++);
   }
 
-  // 키 값으로 범위 지우기
   void erase(const key_type *first, const key_type *last) {
     while (first != last) erase(*first++);
   }
@@ -637,7 +627,6 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
     return iterator(z);
   }
 
-  // copy 아직 안만듬
   node_type copy(node_type x, node_type p) {
     node_type top = clone_node(x);
     top->parent = p;
@@ -706,14 +695,14 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
   void RB_tree_rebalance_for_insert(node_type n) {
     n->color = RED;
 
-    // case1
+    // case4 삽입 노드가 루트
     if (n == root()) {
       n->color = BLACK;
       return;
     }
-    // case2
+    // case5 삽입 노드의 부모가 검정
     if (n->parent->color == BLACK) return;
-    // case3
+    // case1 삽입 노드의 부모와 삼촌이 빨강
     node_type u = uncle(n);
     if (u && u->color == RED) {
       n->parent->color = BLACK;
@@ -722,7 +711,7 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
       RB_tree_rebalance_for_insert(n->parent->parent);
       return;
     }
-    // case4
+    // case2 삽입 노드는 부모의 오른쪽, 부모는 빨강 및 조부모의 왼쪽, 삼촌은 검정
     if (n == n->parent->right && n->parent == n->parent->parent->left) {
       RB_tree_rotate_left(n->parent);
       n = n->left;
@@ -730,7 +719,7 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
       RB_tree_rotate_right(n->parent);
       n = n->right;
     }
-    // case5
+    // case3 삽입 노드는 부모의 왼쪽, 부모는 빨강 및 조부모의 왼쪽, 삼촌은 검정
     n->parent->color = BLACK;
     n->parent->parent->color = RED;
     if (n == n->parent->left && n->parent == n->parent->parent->left)
@@ -744,22 +733,19 @@ class RB_tree : protected RB_tree_base<Value, Allocator> {
     node_type c = 0;
     node_type c_parent = 0;
 
-    if (successor->left ==
-        0)                   // target has at most one non-null child. successor == target.
-      c = successor->right;  // c might be null.
-    else if (successor->right ==
-             0)             // target has exactly one non-null child. successor == target.
-      c = successor->left;  // c is not null.
-    else {                  // target has two non-null children.
-      successor =
-          successor
-              ->right;  // Set successor to target's successor. c might be null.
+    // 대체 노드 찾기
+    if (successor->left == 0)        // target has at most one non-null child. successor == target.
+      c = successor->right;          // c might be null.
+    else if (successor->right == 0)  // target has exactly one non-null child. successor == target.
+      c = successor->left;           // c is not null.
+    else {                           // target has two non-null children.
+      successor = successor->right;  // Set successor to target's successor. c might be null.
       while (successor->left != 0) successor = successor->left;
       c = successor->right;
     }
 
-    if (successor != target) {  // relink successor in place of target.
-                                // successor is target's successor
+    // 삭제할 노드의 자식이 2명인 경우
+    if (successor != target) {
       target->left->parent = successor;
       successor->left = target->left;
       if (successor != target->right) {
